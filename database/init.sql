@@ -1,3 +1,6 @@
+-- Limpar dados existentes
+DROP TABLE IF EXISTS produtos CASCADE;
+
 -- Criar tabela de produtos
 CREATE TABLE produtos (
     id SERIAL PRIMARY KEY,
@@ -11,11 +14,7 @@ CREATE TABLE produtos (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Inserir dados iniciais
-INSERT INTO produtos (nome, categoria, quantidade, unidade, data_validade, fornecedor) VALUES
-('Tomate', 'Vegetais', 50, 'kg', '2024-02-15', 'Hortifruti Silva'),
-('Frango', 'Carnes', 25, 'kg', '2024-01-20', 'Açougue Central'),
-('Arroz', 'Grãos', 100, 'kg', '2024-12-31', 'Distribuidora Grãos');
+
 
 -- Função para atualizar updated_at automaticamente
 CREATE OR REPLACE FUNCTION update_updated_at_column()

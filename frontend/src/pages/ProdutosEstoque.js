@@ -369,8 +369,22 @@ const ProdutosEstoque = () => {
           anchorEl={menuAnchor}
           open={Boolean(menuAnchor)}
           onClose={handleMenuClose}
-          transformOrigin={{ horizontal: 'right', vertical: 'top' }}
-          anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+          anchorOrigin={{
+            vertical: 'bottom',
+            horizontal: 'right',
+          }}
+          transformOrigin={{
+            vertical: 'top',
+            horizontal: 'right',
+          }}
+          slotProps={{
+            paper: {
+              sx: {
+                mt: 0.5,
+                ml: -1
+              }
+            }
+          }}
         >
           <MenuItem component={Link} to={`/editar/${produtoMenu?.id}`} onClick={handleMenuClose}>
             <EditIcon sx={{ mr: 1, color: 'primary.main' }} />
