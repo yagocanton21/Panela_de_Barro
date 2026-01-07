@@ -30,6 +30,14 @@ jobs:
       - name: Install backend dependencies
         run: npm install
 
+      # Passo 4: Valida sintaxe do backend
+      - name: Validate backend syntax
+        run: node -c api.js
+
+      # Passo 5: Testa inicialização do backend
+      - name: Test backend startup
+        run: timeout 10s npm start || code=$?; if [[ $code -ne 124 && $code -ne 0 ]]; then exit $code; fi
+
   frontend:
     runs-on: ubuntu-latest
     defaults:
@@ -50,6 +58,10 @@ jobs:
       - name: Install frontend dependencies
         run: npm install
 
-      # Passo 4: Build do frontend
+      # Passo 4: Roda testes do frontend
+      - name: Test frontend
+        run: CI=true npm test -- --coverage --watchAll=false
+
+      # Passo 5: Build do frontend
       - name: Build frontend
         run: CI=false npm run build
