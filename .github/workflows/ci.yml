@@ -1,0 +1,45 @@
+name: CI Dev
+
+# Eventos que disparam o workflow
+on:
+  push:
+    branches:
+      - dev
+  pull_request:
+    branches:
+      - dev
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Passo 1: Pega o código do repositório
+      - uses: actions/checkout@v3
+
+      # Passo 2: Configura Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      # Passo 3: Cache de dependências para acelerar builds
+      - name: Cache node modules
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      # Passo 4: Instala dependências
+      - name: Install dependencies
+        run: npm install
+
+      # Passo 5: Roda testes
+      - name: Run tests
+        run: npm test
+
+      # Passo 6: Build (opcional, se for frontend)
+      - name: Build
+        run: npm run build
