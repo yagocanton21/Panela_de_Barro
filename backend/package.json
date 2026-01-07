@@ -1,0 +1,19 @@
+{
+  "name": "sistema-estoque-restaurante",
+  "version": "1.0.0",
+  "description": "API REST para gerenciamento de estoque de produtos alimentícios",
+  "main": "api.js",
+  "type": "module",
+  "scripts": {
+    "start": "node api.js",
+    "dev": "node --watch api.js"
+  },
+  "keywords": ["restaurante", "estoque", "api", "nodejs", "express"],
+  "author": "Yago Canton",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "pg": "^8.11.3",
+    "dotenv": "^16.3.1"
+  }
+}
