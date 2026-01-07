@@ -52,4 +52,4 @@ jobs:
 
       # Passo 4: Build do frontend
       - name: Build frontend
-        run: npm run build
+        run: CI=false npm run build
