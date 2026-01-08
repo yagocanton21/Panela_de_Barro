@@ -2,29 +2,27 @@ import React, { useState, useEffect } from 'react';
 import {
   Container,
   Typography,
-  Paper,
   Grid,
   Card,
   CardContent,
   Button,
   Box,
-  Avatar,
-  LinearProgress,
-  Chip,
-  IconButton,
-  Fade,
-  Grow
+  Divider,
+  List,
+  ListItem,
+  ListItemText,
+  ListItemIcon,
+  Skeleton
 } from '@mui/material';
 import {
   Inventory as InventoryIcon,
   Add as AddIcon,
-  TrendingUp as TrendingUpIcon,
-  Restaurant as RestaurantIcon,
   Warning as WarningIcon,
-  CheckCircle as CheckCircleIcon,
-  Analytics as AnalyticsIcon,
-  Speed as SpeedIcon,
-  Visibility as VisibilityIcon
+  Category as CategoryIcon,
+  TrendingUp as TrendingUpIcon,
+  CalendarToday as CalendarIcon,
+  Visibility as VisibilityIcon,
+  Assessment as AssessmentIcon
 } from '@mui/icons-material';
 import { Link } from 'react-router-dom';
 import { estoqueAPI } from '../services/api';
@@ -33,263 +31,271 @@ const Dashboard = () => {
   const [stats, setStats] = useState({
     totalProdutos: 0,
     produtosBaixoEstoque: 0,
-    categorias: 0
+    categorias: 0,
+    quantidadeTotal: 0,
+    produtosVencendo: 0,
+    categoriaMaisUsada: ''
   });
+  const [produtosRecentes, setProdutosRecentes] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    carregarEstatisticas();
+    carregarDados();
   }, []);
 
-  const carregarEstatisticas = async () => {
+  const carregarDados = async () => {
     try {
       const response = await estoqueAPI.listar();
       const produtos = response.data.produtos || [];
       
       const produtosBaixoEstoque = produtos.filter(p => p.quantidade < 10).length;
-      const categorias = [...new Set(produtos.map(p => p.categoria))].length;
+      const categorias = [...new Set(produtos.map(p => p.categoria))];
+      const quantidadeTotal = produtos.reduce((acc, p) => acc + p.quantidade, 0);
+      
+      // Produtos vencendo em 7 dias
+      const hoje = new Date();
+      const seteDias = new Date(hoje.getTime() + 7 * 24 * 60 * 60 * 1000);
+      const produtosVencendo = produtos.filter(p => {
+        if (!p.dataValidade) return false;
+        const dataValidade = new Date(p.dataValidade);
+        return dataValidade <= seteDias && dataValidade >= hoje;
+      }).length;
+      
+      // Categoria mais usada
+      const categoriaCount = {};
+      produtos.forEach(p => {
+        categoriaCount[p.categoria] = (categoriaCount[p.categoria] || 0) + 1;
+      });
+      const categoriaMaisUsada = Object.keys(categoriaCount).reduce((a, b) => 
+        categoriaCount[a] > categoriaCount[b] ? a : b, '') || 'Nenhuma';
       
       setStats({
         totalProdutos: produtos.length,
         produtosBaixoEstoque,
-        categorias
+        categorias: categorias.length,
+        quantidadeTotal,
+        produtosVencendo,
+        categoriaMaisUsada
       });
+      
+      // Últimos 5 produtos adicionados
+      setProdutosRecentes(produtos.slice(-5).reverse());
     } catch (error) {
-      console.error('Erro ao carregar estatísticas:', error);
+      console.error('Erro ao carregar dados:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const StatCard = ({ title, value, icon, color, subtitle, progress, delay = 0 }) => (
-    <Grow in={!loading} timeout={1000} style={{ transitionDelay: `${delay}ms` }}>
-      <Card 
-        elevation={0}
-        sx={{ 
-          height: '100%',
-          background: `linear-gradient(135deg, ${color}15 0%, ${color}25 100%)`,
-          border: `1px solid ${color}30`,
-          position: 'relative',
-          overflow: 'hidden',
-          '&::before': {
-            content: '""',
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            height: '4px',
-            background: `linear-gradient(90deg, ${color} 0%, ${color}80 100%)`,
-          }
-        }}
-      >
-        <CardContent sx={{ p: 3 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-            <Avatar sx={{ bgcolor: color, width: 56, height: 56 }}>
-              {icon}
-            </Avatar>
-            <Box sx={{ textAlign: 'right' }}>
-              <Typography variant="h4" sx={{ fontWeight: 700, color: color }}>
-                {loading ? '-' : value}
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                {subtitle}
-              </Typography>
-            </Box>
+  const StatCard = ({ title, value, icon, color, subtitle }) => (
+    <Card sx={{ height: '100%', border: '1px solid', borderColor: 'divider' }}>
+      <CardContent>
+        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+          <Box sx={{ 
+            p: 1, 
+            borderRadius: 2, 
+            bgcolor: `${color}.light`, 
+            color: `${color}.main`,
+            mr: 2
+          }}>
+            {icon}
           </Box>
-          <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>
-            {title}
-          </Typography>
-          {progress !== undefined && (
-            <Box sx={{ mt: 2 }}>
-              <LinearProgress 
-                variant="determinate" 
-                value={progress} 
-                sx={{ 
-                  height: 8, 
-                  borderRadius: 4,
-                  backgroundColor: `${color}20`,
-                  '& .MuiLinearProgress-bar': {
-                    backgroundColor: color,
-                  }
-                }} 
-              />
-              <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
-                {progress}% do objetivo
-              </Typography>
-            </Box>
-          )}
-        </CardContent>
-      </Card>
-    </Grow>
+          <Box>
+            <Typography variant="h4" sx={{ fontWeight: 600, color: `${color}.main` }}>
+              {loading ? <Skeleton width={40} /> : value}
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              {subtitle}
+            </Typography>
+          </Box>
+        </Box>
+        <Typography variant="h6" color="text.primary">
+          {title}
+        </Typography>
+      </CardContent>
+    </Card>
   );
 
-  const ActionCard = ({ title, description, icon, color, path, delay = 0 }) => (
-    <Grow in={!loading} timeout={1000} style={{ transitionDelay: `${delay}ms` }}>
-      <Card 
-        elevation={0}
-        sx={{ 
-          height: '100%',
-          cursor: 'pointer',
-          transition: 'all 0.3s ease',
-          border: '1px solid',
-          borderColor: 'divider',
-          '&:hover': {
-            transform: 'translateY(-8px)',
-            boxShadow: `0 20px 40px ${color}20`,
-            borderColor: color,
-          }
-        }}
-        component={Link}
-        to={path}
-      >
-        <CardContent sx={{ p: 4, textAlign: 'center' }}>
-          <Avatar 
-            sx={{ 
-              bgcolor: `${color}15`, 
-              color: color,
-              width: 80, 
-              height: 80, 
-              mx: 'auto',
-              mb: 3,
-              fontSize: '2rem'
-            }}
-          >
-            {icon}
-          </Avatar>
-          <Typography variant="h5" sx={{ fontWeight: 600, mb: 2 }}>
-            {title}
-          </Typography>
-          <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-            {description}
-          </Typography>
-          <Button
-            variant="contained"
-            sx={{ 
-              bgcolor: color,
-              '&:hover': { bgcolor: `${color}dd` },
-              borderRadius: 3,
-              px: 4,
-              py: 1.5
-            }}
-            startIcon={icon}
-          >
-            Acessar
-          </Button>
-        </CardContent>
-      </Card>
-    </Grow>
+  const QuickAction = ({ title, icon, path, color }) => (
+    <Button
+      component={Link}
+      to={path}
+      variant="outlined"
+      startIcon={icon}
+      sx={{
+        p: 2,
+        height: '100%',
+        borderColor: `${color}.main`,
+        color: `${color}.main`,
+        '&:hover': {
+          borderColor: `${color}.dark`,
+          bgcolor: `${color}.light`
+        }
+      }}
+      fullWidth
+    >
+      {title}
+    </Button>
   );
 
   return (
-    <Box sx={{ minHeight: '100vh', py: 4 }}>
-      <Container maxWidth="lg">
-        {/* Header Hero */}
-        <Fade in={!loading} timeout={800}>
-          <Paper 
-            elevation={0}
-            sx={{ 
-              p: 6, 
-              mb: 4, 
-              textAlign: 'center',
-              background: 'linear-gradient(135deg, #8b4513 0%, #a0522d 100%)',
-              color: 'white',
-              borderRadius: 4,
-              position: 'relative',
-              overflow: 'hidden',
-              '&::before': {
-                content: '""',
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                background: 'url("data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23ffffff" fill-opacity="0.1"%3E%3Ccircle cx="30" cy="30" r="2"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")',
-              }
-            }}
-          >
-            <Box sx={{ position: 'relative', zIndex: 1 }}>
-              <RestaurantIcon sx={{ fontSize: 80, mb: 2, opacity: 0.9 }} />
-              <Typography variant="h2" sx={{ fontWeight: 700, mb: 2 }}>
-                Panela de Barro
-              </Typography>
-              <Typography variant="h5" sx={{ opacity: 0.9, maxWidth: 600, mx: 'auto' }}>
-                Gerencie seu estoque com inteligência e eficiência
-              </Typography>
-              <Box sx={{ mt: 4, display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
-                <Chip 
-                  icon={<CheckCircleIcon />} 
-                  label="Sistema Completo" 
-                  sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: 'white' }}
-                />
-                <Chip 
-                  icon={<SpeedIcon />} 
-                  label="Rápido & Eficiente" 
-                  sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: 'white' }}
-                />
-                <Chip 
-                  icon={<AnalyticsIcon />} 
-                  label="Relatórios Detalhados" 
-                  sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: 'white' }}
-                />
-              </Box>
-            </Box>
-          </Paper>
-        </Fade>
-
-        {/* Estatísticas */}
-        <Grid container spacing={3} sx={{ mb: 4 }}>
-          <Grid item xs={12} sm={6} md={6}>
-            <StatCard
-              title="Total de Produtos"
-              value={stats.totalProdutos}
-              icon={<InventoryIcon />}
-              color="#00b894"
-              subtitle="itens cadastrados"
-              progress={Math.min((stats.totalProdutos / 100) * 100, 100)}
-              delay={100}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6} md={6}>
-            <StatCard
-              title="Estoque Baixo"
-              value={stats.produtosBaixoEstoque}
-              icon={<WarningIcon />}
-              color="#fdcb6e"
-              subtitle="precisam atenção"
-              progress={stats.totalProdutos > 0 ? (stats.produtosBaixoEstoque / stats.totalProdutos) * 100 : 0}
-              delay={200}
-            />
-          </Grid>
-        </Grid>
-
-        {/* Ações Rápidas */}
-        <Typography variant="h4" sx={{ fontWeight: 700, mb: 3, textAlign: 'center' }}>
-          Ações Rápidas
+    <Container maxWidth="lg" sx={{ py: 4 }}>
+      {/* Header */}
+      <Box sx={{ mb: 4 }}>
+        <Typography variant="h4" sx={{ fontWeight: 600, mb: 1 }}>
+          Dashboard
         </Typography>
-        <Grid container spacing={4}>
-          <Grid item xs={12} md={6}>
-            <ActionCard
-              title="Visualizar Estoque"
-              description="Veja todos os produtos, faça buscas e gerencie quantidades em tempo real"
-              icon={<VisibilityIcon />}
-              color="#00b894"
-              path="/estoque"
-              delay={500}
-            />
-          </Grid>
-          <Grid item xs={12} md={6}>
-            <ActionCard
-              title="Adicionar Produto"
-              description="Cadastre novos itens no seu estoque de forma rápida e organizada"
-              icon={<AddIcon />}
-              color="#00cec9"
-              path="/adicionar"
-              delay={600}
-            />
-          </Grid>
+        <Typography variant="body1" color="text.secondary">
+          Visão geral do seu estoque
+        </Typography>
+      </Box>
+
+      {/* Estatísticas */}
+      <Grid container spacing={3} sx={{ mb: 4 }}>
+        <Grid item xs={12} sm={6} md={4}>
+          <StatCard
+            title="Total de Produtos"
+            value={stats.totalProdutos}
+            icon={<InventoryIcon />}
+            color="primary"
+            subtitle="itens cadastrados"
+          />
         </Grid>
-      </Container>
-    </Box>
+        <Grid item xs={12} sm={6} md={4}>
+          <StatCard
+            title="Estoque Baixo"
+            value={stats.produtosBaixoEstoque}
+            icon={<WarningIcon />}
+            color="warning"
+            subtitle="precisam atenção"
+          />
+        </Grid>
+        <Grid item xs={12} sm={6} md={4}>
+          <StatCard
+            title="Categorias"
+            value={stats.categorias}
+            icon={<CategoryIcon />}
+            color="info"
+            subtitle="diferentes tipos"
+          />
+        </Grid>
+        <Grid item xs={12} sm={6} md={4}>
+          <StatCard
+            title="Quantidade Total"
+            value={stats.quantidadeTotal}
+            icon={<TrendingUpIcon />}
+            color="success"
+            subtitle="unidades em estoque"
+          />
+        </Grid>
+        <Grid item xs={12} sm={6} md={4}>
+          <StatCard
+            title="Vencendo em 7 dias"
+            value={stats.produtosVencendo}
+            icon={<CalendarIcon />}
+            color="error"
+            subtitle="produtos próximos ao vencimento"
+          />
+        </Grid>
+        <Grid item xs={12} sm={6} md={4}>
+          <Card sx={{ height: '100%', border: '1px solid', borderColor: 'divider' }}>
+            <CardContent>
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                <Box sx={{ 
+                  p: 1, 
+                  borderRadius: 2, 
+                  bgcolor: 'secondary.light', 
+                  color: 'secondary.main',
+                  mr: 2
+                }}>
+                  <AssessmentIcon />
+                </Box>
+                <Box>
+                  <Typography variant="h6" sx={{ fontWeight: 600, color: 'secondary.main' }}>
+                    {loading ? <Skeleton width={80} /> : stats.categoriaMaisUsada}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    categoria principal
+                  </Typography>
+                </Box>
+              </Box>
+              <Typography variant="h6" color="text.primary">
+                Categoria Mais Usada
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
+
+      <Grid container spacing={3}>
+        {/* Ações Rápidas */}
+        <Grid item xs={12} md={6}>
+          <Card>
+            <CardContent>
+              <Typography variant="h6" sx={{ mb: 3, fontWeight: 600 }}>
+                Ações Rápidas
+              </Typography>
+              <Grid container spacing={2}>
+                <Grid item xs={12}>
+                  <QuickAction
+                    title="Ver Estoque"
+                    icon={<VisibilityIcon />}
+                    path="/estoque"
+                    color="primary"
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <QuickAction
+                    title="Adicionar Produto"
+                    icon={<AddIcon />}
+                    path="/adicionar"
+                    color="success"
+                  />
+                </Grid>
+              </Grid>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        {/* Produtos Recentes */}
+        <Grid item xs={12} md={6}>
+          <Card>
+            <CardContent>
+              <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+                Produtos Recentes
+              </Typography>
+              <Divider sx={{ mb: 2 }} />
+              {loading ? (
+                Array.from({ length: 3 }).map((_, i) => (
+                  <Box key={i} sx={{ mb: 2 }}>
+                    <Skeleton height={20} width="60%" />
+                    <Skeleton height={16} width="40%" />
+                  </Box>
+                ))
+              ) : produtosRecentes.length > 0 ? (
+                <List dense>
+                  {produtosRecentes.map((produto, index) => (
+                    <ListItem key={index} sx={{ px: 0 }}>
+                      <ListItemIcon>
+                        <InventoryIcon color="primary" />
+                      </ListItemIcon>
+                      <ListItemText
+                        primary={produto.nome}
+                        secondary={`${produto.categoria} - ${produto.quantidade} ${produto.unidade || 'un'}`}
+                      />
+                    </ListItem>
+                  ))}
+                </List>
+              ) : (
+                <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 2 }}>
+                  Nenhum produto cadastrado ainda
+                </Typography>
+              )}
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
+    </Container>
   );
 };
 

@@ -49,7 +49,7 @@ function EditarProduto() {
 
   useEffect(() => {
     carregarProduto();
-  }, [id]);
+  }, [id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const carregarProduto = async () => {
     try {

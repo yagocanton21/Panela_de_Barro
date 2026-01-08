@@ -54,7 +54,7 @@ const ProdutosEstoque = () => {
 
   useEffect(() => {
     carregarProdutos();
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     let produtosFiltrados = produtos.filter(produto =>
