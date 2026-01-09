@@ -22,9 +22,9 @@ import {
   Save as SaveIcon,
   ArrowBack as ArrowBackIcon
 } from '@mui/icons-material';
-import { estoqueAPI } from '../services/api';
+import { estoqueAPI, categoriasAPI } from '../services/api';
 
-const categorias = ['Carnes', 'Vegetais', 'Grãos', 'Laticínios', 'Bebidas', 'Temperos', 'Outros'];
+
 const unidades = ['kg', 'g', 'L', 'ml', 'unidades', 'caixas', 'pacotes'];
 
 const steps = ['Informações Básicas', 'Detalhes', 'Confirmação'];
@@ -37,10 +37,11 @@ function EditarProduto() {
   const [salvando, setSalvando] = useState(false);
   const [erro, setErro] = useState('');
   const [sucesso, setSucesso] = useState('');
+  const [categorias, setCategorias] = useState([]);
   
   const [produto, setProduto] = useState({
     nome: '',
-    categoria: '',
+    categoriaId: '',
     quantidade: '',
     unidade: '',
     dataValidade: '',
@@ -48,8 +49,18 @@ function EditarProduto() {
   });
 
   useEffect(() => {
+    carregarCategorias();
     carregarProduto();
-  }, [id]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [id]);
+
+  const carregarCategorias = async () => {
+    try {
+      const response = await categoriasAPI.listar();
+      setCategorias(response.data.categorias);
+    } catch (error) {
+      console.error('Erro ao carregar categorias:', error);
+    }
+  };
 
   const carregarProduto = async () => {
     try {
@@ -59,7 +70,7 @@ function EditarProduto() {
       
       setProduto({
         nome: produtoData.nome || '',
-        categoria: produtoData.categoria || '',
+        categoriaId: produtoData.categoria_id || '',
         quantidade: produtoData.quantidade || '',
         unidade: produtoData.unidade || '',
         dataValidade: produtoData.data_validade ? produtoData.data_validade.split('T')[0] : '',
@@ -82,7 +93,7 @@ function EditarProduto() {
 
   const handleNext = () => {
     if (activeStep === 0) {
-      if (!produto.nome || !produto.categoria) {
+      if (!produto.nome || !produto.categoriaId) {
         setErro('Nome e categoria são obrigatórios');
         return;
       }
@@ -109,7 +120,7 @@ function EditarProduto() {
       
       const dadosParaEnvio = {
         nome: produto.nome,
-        categoria: produto.categoria,
+        categoriaId: Number(produto.categoriaId),
         quantidade: Number(produto.quantidade),
         unidade: produto.unidade,
         dataValidade: produto.dataValidade || null,
@@ -152,20 +163,26 @@ function EditarProduto() {
               />
             </Grid>
             <Grid item xs={12}>
-              <TextField
-                select
-                fullWidth
-                label="Categoria"
-                value={produto.categoria}
-                onChange={handleChange('categoria')}
-                required
-              >
-                {categorias.map((cat) => (
-                  <MenuItem key={cat} value={cat}>
-                    {cat}
-                  </MenuItem>
-                ))}
-              </TextField>
+              {categorias.length > 0 ? (
+                <TextField
+                  select
+                  fullWidth
+                  label="Categoria"
+                  value={produto.categoriaId}
+                  onChange={handleChange('categoriaId')}
+                  required
+                >
+                  {categorias.map((categoria) => (
+                    <MenuItem key={categoria.id} value={categoria.id}>
+                      {categoria.nome}
+                    </MenuItem>
+                  ))}
+                </TextField>
+              ) : (
+                <Alert severity="warning">
+                  Nenhuma categoria encontrada. Crie uma categoria primeiro.
+                </Alert>
+              )}
             </Grid>
           </Grid>
         );
@@ -233,7 +250,7 @@ function EditarProduto() {
               </Grid>
               <Grid item xs={12} sm={6}>
                 <Typography variant="body2" color="text.secondary">Categoria:</Typography>
-                <Chip label={produto.categoria} size="small" />
+                <Chip label={categorias.find(c => c.id === parseInt(produto.categoriaId))?.nome || 'N/A'} size="small" />
               </Grid>
               <Grid item xs={12} sm={6}>
                 <Typography variant="body2" color="text.secondary">Quantidade:</Typography>

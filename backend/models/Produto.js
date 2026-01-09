@@ -4,47 +4,64 @@ import pool from '../database.js';
 class Produto {
   // Buscar todos os produtos ordenados por ID
   static async listarTodos() {
-    const result = await pool.query('SELECT * FROM produtos ORDER BY id');
+    const result = await pool.query(`
+      SELECT p.*, c.nome as categoria 
+      FROM produtos p 
+      JOIN categorias c ON p.categoria_id = c.id 
+      ORDER BY p.id
+    `);
     return result.rows;
   }
 
   // Buscar produto por ID específico
   static async buscarPorId(id) {
-    const result = await pool.query('SELECT * FROM produtos WHERE id = $1', [id]);
+    const result = await pool.query(`
+      SELECT p.*, c.nome as categoria 
+      FROM produtos p 
+      JOIN categorias c ON p.categoria_id = c.id 
+      WHERE p.id = $1
+    `, [id]);
     return result.rows[0];
   }
 
   // Buscar produtos por categoria
-  static async buscarPorCategoria(categoria) {
-    const result = await pool.query(
-      'SELECT * FROM produtos WHERE LOWER(categoria) = LOWER($1)', 
-      [categoria]
-    );
+  static async buscarPorCategoria(categoriaId) {
+    const result = await pool.query(`
+      SELECT p.*, c.nome as categoria 
+      FROM produtos p 
+      JOIN categorias c ON p.categoria_id = c.id 
+      WHERE p.categoria_id = $1
+    `, [categoriaId]);
     return result.rows;
   }
 
   // Buscar produtos com estoque baixo (menos de 10 unidades)
   static async buscarEstoqueBaixo() {
-    const result = await pool.query('SELECT * FROM produtos WHERE quantidade < 10');
+    const result = await pool.query(`
+      SELECT p.*, c.nome as categoria 
+      FROM produtos p 
+      JOIN categorias c ON p.categoria_id = c.id 
+      WHERE p.quantidade < 10
+    `);
     return result.rows;
   }
 
   // Criar novo produto no banco
   static async criar(dados) {
-    const { nome, categoria, quantidade, unidade, dataValidade, fornecedor } = dados;
+    const { nome, categoriaId, quantidade, unidade, dataValidade, fornecedor } = dados;
     const result = await pool.query(
-      'INSERT INTO produtos (nome, categoria, quantidade, unidade, data_validade, fornecedor) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
-      [nome, categoria, Number(quantidade), unidade, dataValidade || null, fornecedor || null]
+      'INSERT INTO produtos (nome, categoria_id, quantidade, unidade, data_validade, fornecedor) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
+      [nome, categoriaId, Number(quantidade), unidade, dataValidade || null, fornecedor || null]
     );
     return result.rows[0];
   }
 
   // Atualizar produto existente
   static async atualizar(id, dados) {
-    const { nome, categoria, quantidade, unidade, dataValidade, fornecedor } = dados;
+    const { nome, categoriaId, quantidade, unidade, dataValidade, fornecedor } = dados;
     const result = await pool.query(
-      'UPDATE produtos SET nome = $1, categoria = $2, quantidade = $3, unidade = $4, data_validade = $5, fornecedor = $6 WHERE id = $7 RETURNING *',
-      [nome, categoria, Number(quantidade), unidade, dataValidade || null, fornecedor || null, id]
+      'UPDATE produtos SET nome = $1, categoria_id = $2, quantidade = $3, unidade = $4, data_validade = $5, fornecedor = $6 WHERE id = $7 RETURNING *',
+      [nome, categoriaId, Number(quantidade), unidade, dataValidade || null, fornecedor || null, id]
     );
     return result.rows[0];
   }

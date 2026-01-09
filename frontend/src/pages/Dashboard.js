@@ -5,26 +5,17 @@ import {
   Grid,
   Card,
   CardContent,
-  Button,
   Box,
-  Divider,
-  List,
-  ListItem,
-  ListItemText,
-  ListItemIcon,
   Skeleton
 } from '@mui/material';
 import {
   Inventory as InventoryIcon,
-  Add as AddIcon,
   Warning as WarningIcon,
   Category as CategoryIcon,
   TrendingUp as TrendingUpIcon,
   CalendarToday as CalendarIcon,
-  Visibility as VisibilityIcon,
   Assessment as AssessmentIcon
 } from '@mui/icons-material';
-import { Link } from 'react-router-dom';
 import { estoqueAPI } from '../services/api';
 
 const Dashboard = () => {
@@ -36,7 +27,7 @@ const Dashboard = () => {
     produtosVencendo: 0,
     categoriaMaisUsada: ''
   });
-  const [produtosRecentes, setProdutosRecentes] = useState([]);
+
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -78,8 +69,7 @@ const Dashboard = () => {
         categoriaMaisUsada
       });
       
-      // Últimos 5 produtos adicionados
-      setProdutosRecentes(produtos.slice(-5).reverse());
+
     } catch (error) {
       console.error('Erro ao carregar dados:', error);
     } finally {
@@ -116,27 +106,7 @@ const Dashboard = () => {
     </Card>
   );
 
-  const QuickAction = ({ title, icon, path, color }) => (
-    <Button
-      component={Link}
-      to={path}
-      variant="outlined"
-      startIcon={icon}
-      sx={{
-        p: 2,
-        height: '100%',
-        borderColor: `${color}.main`,
-        color: `${color}.main`,
-        '&:hover': {
-          borderColor: `${color}.dark`,
-          bgcolor: `${color}.light`
-        }
-      }}
-      fullWidth
-    >
-      {title}
-    </Button>
-  );
+
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
@@ -227,74 +197,7 @@ const Dashboard = () => {
         </Grid>
       </Grid>
 
-      <Grid container spacing={3}>
-        {/* Ações Rápidas */}
-        <Grid item xs={12} md={6}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6" sx={{ mb: 3, fontWeight: 600 }}>
-                Ações Rápidas
-              </Typography>
-              <Grid container spacing={2}>
-                <Grid item xs={12}>
-                  <QuickAction
-                    title="Ver Estoque"
-                    icon={<VisibilityIcon />}
-                    path="/estoque"
-                    color="primary"
-                  />
-                </Grid>
-                <Grid item xs={12}>
-                  <QuickAction
-                    title="Adicionar Produto"
-                    icon={<AddIcon />}
-                    path="/adicionar"
-                    color="success"
-                  />
-                </Grid>
-              </Grid>
-            </CardContent>
-          </Card>
-        </Grid>
 
-        {/* Produtos Recentes */}
-        <Grid item xs={12} md={6}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
-                Produtos Recentes
-              </Typography>
-              <Divider sx={{ mb: 2 }} />
-              {loading ? (
-                Array.from({ length: 3 }).map((_, i) => (
-                  <Box key={i} sx={{ mb: 2 }}>
-                    <Skeleton height={20} width="60%" />
-                    <Skeleton height={16} width="40%" />
-                  </Box>
-                ))
-              ) : produtosRecentes.length > 0 ? (
-                <List dense>
-                  {produtosRecentes.map((produto, index) => (
-                    <ListItem key={index} sx={{ px: 0 }}>
-                      <ListItemIcon>
-                        <InventoryIcon color="primary" />
-                      </ListItemIcon>
-                      <ListItemText
-                        primary={produto.nome}
-                        secondary={`${produto.categoria} - ${produto.quantidade} ${produto.unidade || 'un'}`}
-                      />
-                    </ListItem>
-                  ))}
-                </List>
-              ) : (
-                <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 2 }}>
-                  Nenhum produto cadastrado ainda
-                </Typography>
-              )}
-            </CardContent>
-          </Card>
-        </Grid>
-      </Grid>
     </Container>
   );
 };

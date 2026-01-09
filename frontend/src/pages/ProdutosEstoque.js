@@ -38,12 +38,13 @@ import {
   Category as CategoryIcon
 } from '@mui/icons-material';
 import { Link } from 'react-router-dom';
-import { estoqueAPI } from '../services/api';
+import { estoqueAPI, categoriasAPI } from '../services/api';
 import EstatisticasEstoque from '../components/EstatisticasEstoque';
 
 const ProdutosEstoque = () => {
   const [produtos, setProdutos] = useState([]);
   const [produtosFiltrados, setProdutosFiltrados] = useState([]);
+  const [categorias, setCategorias] = useState([]);
   const [loading, setLoading] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const [deleteDialog, setDeleteDialog] = useState({ open: false, produto: null });
@@ -53,8 +54,18 @@ const ProdutosEstoque = () => {
   const [produtoMenu, setProdutoMenu] = useState(null);
 
   useEffect(() => {
+    carregarCategorias();
     carregarProdutos();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
+
+  const carregarCategorias = async () => {
+    try {
+      const response = await categoriasAPI.listar();
+      setCategorias(response.data.categorias);
+    } catch (error) {
+      console.error('Erro ao carregar categorias:', error);
+    }
+  };
 
   useEffect(() => {
     let produtosFiltrados = produtos.filter(produto =>
@@ -109,19 +120,22 @@ const ProdutosEstoque = () => {
   };
 
   const getCorCategoria = (categoria) => {
-    const cores = {
-      'Carnes': '#8b4513',
-      'Vegetais': '#8fbc8f', 
-      'Grãos': '#daa520',
-      'Laticínios': '#d2b48c',
-      'Bebidas': '#cd853f',
-      'Temperos': '#a0522d',
-      'Frutas': '#d2691e'
-    };
-    return cores[categoria] || '#8b7355';
+    // Gerar cor baseada no hash do nome da categoria
+    let hash = 0;
+    for (let i = 0; i < categoria.length; i++) {
+      hash = categoria.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    
+    const cores = [
+      '#8b4513', '#8fbc8f', '#daa520', '#d2b48c', 
+      '#cd853f', '#a0522d', '#d2691e', '#9370db',
+      '#20b2aa', '#ff6347', '#32cd32', '#ff69b4'
+    ];
+    
+    return cores[Math.abs(hash) % cores.length];
   };
 
-  const categorias = ['todas', ...new Set(produtos.map(p => p.categoria))];
+  const categoriasFiltro = ['todas', ...categorias.map(c => c.nome)];
 
   const handleMenuClick = (event, produto) => {
     setMenuAnchor(event.currentTarget);
@@ -283,7 +297,7 @@ const ProdutosEstoque = () => {
                   }
                 }}
               >
-                {categorias.map((categoria) => (
+                {categoriasFiltro.map((categoria) => (
                   <MenuItem key={categoria} value={categoria}>
                     {categoria === 'todas' ? 'Todas as categorias' : categoria}
                   </MenuItem>

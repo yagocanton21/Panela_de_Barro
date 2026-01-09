@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Container,
   Typography,
@@ -34,28 +34,37 @@ import {
   CheckCircle as CheckCircleIcon
 } from '@mui/icons-material';
 import { Link } from 'react-router-dom';
-import { estoqueAPI } from '../services/api';
+import { estoqueAPI, categoriasAPI } from '../services/api';
 
 const AdicionarProduto = () => {
   const [formData, setFormData] = useState({
     nome: '',
-    categoria: '',
+    categoriaId: '',
     quantidade: '',
     unidade: '',
     preco: '',
     dataValidade: '',
     fornecedor: ''
   });
+  const [categorias, setCategorias] = useState([]);
   const [loading, setLoading] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const [activeStep, setActiveStep] = useState(0);
 
   const steps = ['Informações Básicas', 'Detalhes', 'Confirmação'];
 
-  const categoriasPredefinidas = [
-    'Carnes', 'Vegetais', 'Frutas', 'Grãos', 'Laticínios', 
-    'Bebidas', 'Temperos', 'Massas', 'Enlatados', 'Congelados'
-  ];
+  useEffect(() => {
+    carregarCategorias();
+  }, []);
+
+  const carregarCategorias = async () => {
+    try {
+      const response = await categoriasAPI.listar();
+      setCategorias(response.data.categorias);
+    } catch (error) {
+      console.error('Erro ao carregar categorias:', error);
+    }
+  };
 
   const unidadesPredefinidas = [
     { value: 'kg', label: 'Quilograma (kg)', icon: '⚖️' },
@@ -82,7 +91,7 @@ const AdicionarProduto = () => {
       
       const produtoData = {
         nome: formData.nome,
-        categoria: formData.categoria,
+        categoriaId: parseInt(formData.categoriaId),
         quantidade: parseInt(formData.quantidade),
         unidade: formData.unidade,
         ...(formData.preco && { preco: parseFloat(formData.preco) }),
@@ -95,7 +104,7 @@ const AdicionarProduto = () => {
       // Limpar formulário
       setFormData({
         nome: '',
-        categoria: '',
+        categoriaId: '',
         quantidade: '',
         unidade: '',
         preco: '',
@@ -116,7 +125,7 @@ const AdicionarProduto = () => {
   const isStepValid = (step) => {
     switch (step) {
       case 0:
-        return formData.nome && formData.categoria;
+        return formData.nome && formData.categoriaId;
       case 1:
         return formData.quantidade && formData.unidade;
       case 2:
@@ -168,43 +177,61 @@ const AdicionarProduto = () => {
               </Grid>
               
               <Grid item xs={12}>
-                <FormControl fullWidth required>
-                  <InputLabel>Categoria</InputLabel>
-                  <Select
-                    value={formData.categoria}
-                    label="Categoria"
-                    onChange={(e) => handleInputChange('categoria', e.target.value)}
-                    startAdornment={
-                      <InputAdornment position="start">
-                        <CategoryIcon color="action" />
-                      </InputAdornment>
-                    }
-                    sx={{
-                      borderRadius: 2,
-                    }}
-                  >
-                    {categoriasPredefinidas.map((cat) => (
-                      <MenuItem key={cat} value={cat}>
-                        {cat}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
+                {categorias.length > 0 ? (
+                  <FormControl fullWidth required>
+                    <InputLabel>Categoria</InputLabel>
+                    <Select
+                      value={formData.categoriaId}
+                      label="Categoria"
+                      onChange={(e) => handleInputChange('categoriaId', e.target.value)}
+                      startAdornment={
+                        <InputAdornment position="start">
+                          <CategoryIcon color="action" />
+                        </InputAdornment>
+                      }
+                      sx={{
+                        borderRadius: 2,
+                      }}
+                    >
+                      {categorias.map((categoria) => (
+                        <MenuItem key={categoria.id} value={categoria.id}>
+                          {categoria.nome}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                ) : (
+                  <Alert severity="warning" sx={{ borderRadius: 2 }}>
+                    <Typography variant="body2">
+                      Nenhuma categoria encontrada. 
+                      <Button 
+                        component={Link} 
+                        to="/categorias" 
+                        size="small" 
+                        sx={{ ml: 1 }}
+                      >
+                        Criar Categoria
+                      </Button>
+                    </Typography>
+                  </Alert>
+                )}
               </Grid>
               
               <Grid item xs={12}>
-                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
-                  {categoriasPredefinidas.slice(0, 5).map((cat) => (
-                    <Chip
-                      key={cat}
-                      label={cat}
-                      variant={formData.categoria === cat ? 'filled' : 'outlined'}
-                      color={formData.categoria === cat ? 'primary' : 'default'}
-                      onClick={() => handleInputChange('categoria', cat)}
-                      sx={{ cursor: 'pointer' }}
-                    />
-                  ))}
-                </Box>
+                {categorias.length > 0 && (
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
+                    {categorias.slice(0, 5).map((categoria) => (
+                      <Chip
+                        key={categoria.id}
+                        label={categoria.nome}
+                        variant={formData.categoriaId === categoria.id ? 'filled' : 'outlined'}
+                        color={formData.categoriaId === categoria.id ? 'primary' : 'default'}
+                        onClick={() => handleInputChange('categoriaId', categoria.id)}
+                        sx={{ cursor: 'pointer' }}
+                      />
+                    ))}
+                  </Box>
+                )}
               </Grid>
             </Grid>
           </Fade>
@@ -359,7 +386,9 @@ const AdicionarProduto = () => {
                   </Grid>
                   <Grid item xs={6}>
                     <Typography variant="body2" color="text.secondary">Categoria:</Typography>
-                    <Typography variant="body1" sx={{ fontWeight: 600 }}>{formData.categoria}</Typography>
+                    <Typography variant="body1" sx={{ fontWeight: 600 }}>
+                      {categorias.find(c => c.id === parseInt(formData.categoriaId))?.nome}
+                    </Typography>
                   </Grid>
                   <Grid item xs={6}>
                     <Typography variant="body2" color="text.secondary">Quantidade:</Typography>

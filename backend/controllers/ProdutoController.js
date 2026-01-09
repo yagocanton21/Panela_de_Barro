@@ -34,11 +34,11 @@ class ProdutoController {
   // Filtrar produtos por categoria
   static async filtrarPorCategoria(req, res) {
     try {
-      const categoria = req.params.categoria;
-      const produtos = await Produto.buscarPorCategoria(categoria);
+      const categoriaId = parseInt(req.params.categoriaId);
+      const produtos = await Produto.buscarPorCategoria(categoriaId);
       
       res.json({
-        categoria,
+        categoriaId,
         total: produtos.length,
         produtos
       });
@@ -65,12 +65,12 @@ class ProdutoController {
   // Criar novo produto
   static async criar(req, res) {
     try {
-      const { nome, categoria, quantidade, unidade } = req.body;
+      const { nome, categoriaId, quantidade, unidade } = req.body;
       
       // Validar campos obrigatórios
-      if (!nome || !categoria || quantidade === undefined || !unidade) {
+      if (!nome || !categoriaId || quantidade === undefined || !unidade) {
         return res.status(400).json({ 
-          erro: 'Campos obrigatórios: nome, categoria, quantidade, unidade' 
+          erro: 'Campos obrigatórios: nome, categoriaId, quantidade, unidade' 
         });
       }
       
@@ -89,12 +89,12 @@ class ProdutoController {
   static async atualizar(req, res) {
     try {
       const id = parseInt(req.params.id);
-      const { nome, categoria, quantidade, unidade } = req.body;
+      const { nome, categoriaId, quantidade, unidade } = req.body;
       
       // Validar campos obrigatórios
-      if (!nome || !categoria || quantidade === undefined || !unidade) {
+      if (!nome || !categoriaId || quantidade === undefined || !unidade) {
         return res.status(400).json({ 
-          erro: 'Campos obrigatórios: nome, categoria, quantidade, unidade' 
+          erro: 'Campos obrigatórios: nome, categoriaId, quantidade, unidade' 
         });
       }
       

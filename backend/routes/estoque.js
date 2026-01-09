@@ -10,8 +10,8 @@ router.get('/', ProdutoController.listar);
 // GET /estoque/:id - Buscar produto por ID
 router.get('/:id', ProdutoController.buscarPorId);
 
-// GET /estoque/categoria/:categoria - Filtrar por categoria
-router.get('/categoria/:categoria', ProdutoController.filtrarPorCategoria);
+// GET /estoque/categoria/:categoriaId - Filtrar por categoria
+router.get('/categoria/:categoriaId', ProdutoController.filtrarPorCategoria);
 
 // GET /estoque/alerta/baixo - Produtos com estoque baixo
 router.get('/alerta/baixo', ProdutoController.alertaEstoqueBaixo);

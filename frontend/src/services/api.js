@@ -9,3 +9,10 @@ export const estoqueAPI = {
   atualizar: (id, produto) => axios.put(`${API_BASE_URL}/estoque/${id}`, produto),
   remover: (id) => axios.delete(`${API_BASE_URL}/estoque/${id}`)
 };
+
+export const categoriasAPI = {
+  listar: () => axios.get(`${API_BASE_URL}/categorias`),
+  criar: (categoria) => axios.post(`${API_BASE_URL}/categorias`, categoria),
+  atualizar: (id, categoria) => axios.put(`${API_BASE_URL}/categorias/${id}`, categoria),
+  remover: (id) => axios.delete(`${API_BASE_URL}/categorias/${id}`)
+};

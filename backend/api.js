@@ -1,6 +1,7 @@
 import express from "express";
 import dotenv from "dotenv";
 import estoqueRoutes from "./routes/estoque.js";
+import categoriasRoutes from "./routes/categorias.js";
 
 // Carregar variáveis de ambiente
 dotenv.config();
@@ -25,6 +26,7 @@ app.use((req, res, next) => {
 
 // Rotas da API
 app.use('/estoque', estoqueRoutes);
+app.use('/categorias', categoriasRoutes);
 
 // Rota raiz com informações da API
 app.get('/', (req, res) => {
@@ -35,12 +37,16 @@ app.get('/', (req, res) => {
         endpoints: {
             'GET /estoque': 'Listar todos os produtos',
             'GET /estoque/:id': 'Buscar produto por ID',
-            'GET /estoque/categoria/:categoria': 'Filtrar por categoria',
+            'GET /estoque/categoria/:categoriaId': 'Filtrar por categoria',
             'GET /estoque/alerta/baixo': 'Produtos com estoque baixo',
             'POST /estoque': 'Adicionar novo produto',
             'PUT /estoque/:id': 'Atualizar produto completo',
             'PATCH /estoque/:id/quantidade': 'Atualizar quantidade (entrada/saída)',
-            'DELETE /estoque/:id': 'Remover produto'
+            'DELETE /estoque/:id': 'Remover produto',
+            'GET /categorias': 'Listar todas as categorias',
+            'POST /categorias': 'Criar nova categoria',
+            'PUT /categorias/:id': 'Atualizar categoria',
+            'DELETE /categorias/:id': 'Remover categoria'
         }
     });
 });
@@ -49,5 +55,4 @@ app.get('/', (req, res) => {
 app.listen(PORT, () => {
     console.log(`🍽️  Sistema de Estoque do Restaurante rodando na porta ${PORT}`);
     console.log(`📊 Acesse http://localhost:${PORT} para ver os endpoints disponíveis`);
-    console.log(`🏗️  Arquitetura: MVC`);
 });

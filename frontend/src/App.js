@@ -24,7 +24,8 @@ import {
   Menu as MenuIcon,
   Brightness4,
   Brightness7,
-  KeyboardArrowUp
+  KeyboardArrowUp,
+  Category as CategoryIcon
 } from '@mui/icons-material';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
@@ -32,6 +33,7 @@ import Dashboard from './pages/Dashboard';
 import ProdutosEstoque from './pages/ProdutosEstoque';
 import AdicionarProduto from './pages/AdicionarProduto';
 import EditarProduto from './pages/EditarProduto';
+import GerenciarCategorias from './pages/GerenciarCategorias';
 import './App.css';
 
 const getTheme = (darkMode) => createTheme({
@@ -150,6 +152,7 @@ function App() {
               <Route path="/estoque" element={<ProdutosEstoque />} />
               <Route path="/adicionar" element={<AdicionarProduto />} />
               <Route path="/editar/:id" element={<EditarProduto />} />
+              <Route path="/categorias" element={<GerenciarCategorias />} />
             </Routes>
           </Box>
           
@@ -203,6 +206,7 @@ const menuItems = [
   { text: 'Dashboard', icon: <DashboardIcon />, path: '/' },
   { text: 'Estoque', icon: <InventoryIcon />, path: '/estoque' },
   { text: 'Adicionar', icon: <AddIcon />, path: '/adicionar' },
+  { text: 'Categorias', icon: <CategoryIcon />, path: '/categorias' },
 ];
 
 function Navigation({ darkMode, toggleDarkMode }) {
