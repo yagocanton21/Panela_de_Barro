@@ -28,15 +28,18 @@ import axios from 'axios';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
 
+// Componente para gerenciar categorias
 const GerenciarCategorias = () => {
   const [categorias, setCategorias] = useState([]);
   const [dialog, setDialog] = useState({ open: false, categoria: null, nome: '' });
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
 
+  // Carregar categorias ao inicializar
   useEffect(() => {
     carregarCategorias();
   }, []);
 
+  // Buscar categorias da API
   const carregarCategorias = async () => {
     try {
       const response = await axios.get(`${API_URL}/categorias`);
@@ -46,10 +49,12 @@ const GerenciarCategorias = () => {
     }
   };
 
+  // Exibir mensagem de feedback
   const showSnackbar = (message, severity = 'success') => {
     setSnackbar({ open: true, message, severity });
   };
 
+  // Abrir dialog para criar/editar categoria
   const abrirDialog = (categoria = null) => {
     setDialog({
       open: true,
@@ -58,18 +63,22 @@ const GerenciarCategorias = () => {
     });
   };
 
+  // Fechar dialog
   const fecharDialog = () => {
     setDialog({ open: false, categoria: null, nome: '' });
   };
 
+  // Salvar categoria (criar ou atualizar)
   const salvarCategoria = async () => {
     try {
       if (dialog.categoria) {
+        // Atualizar categoria existente
         await axios.put(`${API_URL}/categorias/${dialog.categoria.id}`, {
           nome: dialog.nome
         });
         showSnackbar('Categoria atualizada com sucesso!');
       } else {
+        // Criar nova categoria
         await axios.post(`${API_URL}/categorias`, {
           nome: dialog.nome
         });
@@ -82,6 +91,7 @@ const GerenciarCategorias = () => {
     }
   };
 
+  // Remover categoria
   const removerCategoria = async (id) => {
     if (window.confirm('Tem certeza que deseja remover esta categoria?')) {
       try {

@@ -1,6 +1,8 @@
 import Categoria from '../models/Categoria.js';
 
+// Controller para gerenciar operações de categorias
 class CategoriaController {
+  // Listar todas as categorias
   static async listar(req, res) {
     try {
       const categorias = await Categoria.listarTodas();
@@ -10,10 +12,12 @@ class CategoriaController {
     }
   }
 
+  // Criar nova categoria
   static async criar(req, res) {
     try {
       const { nome } = req.body;
       
+      // Validar nome obrigatório
       if (!nome) {
         return res.status(400).json({ erro: 'Nome da categoria é obrigatório' });
       }
@@ -24,6 +28,7 @@ class CategoriaController {
         categoria
       });
     } catch (error) {
+      // Erro de categoria duplicada
       if (error.code === '23505') {
         return res.status(400).json({ erro: 'Categoria já existe' });
       }
@@ -31,11 +36,13 @@ class CategoriaController {
     }
   }
 
+  // Atualizar categoria existente
   static async atualizar(req, res) {
     try {
       const id = parseInt(req.params.id);
       const { nome } = req.body;
       
+      // Validar nome obrigatório
       if (!nome) {
         return res.status(400).json({ erro: 'Nome da categoria é obrigatório' });
       }
@@ -51,6 +58,7 @@ class CategoriaController {
         categoria
       });
     } catch (error) {
+      // Erro de categoria duplicada
       if (error.code === '23505') {
         return res.status(400).json({ erro: 'Categoria já existe' });
       }
@@ -58,6 +66,7 @@ class CategoriaController {
     }
   }
 
+  // Remover categoria
   static async remover(req, res) {
     try {
       const id = parseInt(req.params.id);
@@ -72,6 +81,7 @@ class CategoriaController {
         categoria
       });
     } catch (error) {
+      // Erro de constraint - categoria tem produtos associados
       if (error.code === '23503') {
         return res.status(400).json({ erro: 'Não é possível remover categoria com produtos associados' });
       }
