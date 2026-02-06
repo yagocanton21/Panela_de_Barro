@@ -1,0 +1,42 @@
+  services:
+    postgres:
+      image: postgres:15-alpine
+      container_name: estoque_db
+      environment:
+        POSTGRES_DB: estoque
+        POSTGRES_USER: admin
+        POSTGRES_PASSWORD: senha123
+      ports:
+        - "5432:5432"
+      volumes:
+        - postgres_data:/var/lib/postgresql/data
+        - ../database/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+    backend:
+      build:
+        context: ../backend
+        dockerfile: ../docker/Dockerfile.backend
+      container_name: estoque_backend
+      ports:
+        - "3001:3001"
+      depends_on:
+        - postgres
+      environment:
+        - DB_HOST=postgres
+        - DB_PORT=5432
+        - DB_NAME=estoque
+        - DB_USER=admin
+        - DB_PASSWORD=senha123
+
+    frontend:
+      build:
+        context: ../frontend
+        dockerfile: ../docker/Dockerfile.frontend
+      container_name: estoque_frontend
+      ports:
+        - "3000:3000"
+      depends_on:
+        - backend
+
+  volumes:
+    postgres_data:
