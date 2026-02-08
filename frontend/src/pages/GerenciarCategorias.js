@@ -24,9 +24,7 @@ import {
   Delete as DeleteIcon,
   Category as CategoryIcon
 } from '@mui/icons-material';
-import axios from 'axios';
-
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
+import { categoriasAPI } from '../services/api';
 
 // Componente para gerenciar categorias
 const GerenciarCategorias = () => {
@@ -42,7 +40,7 @@ const GerenciarCategorias = () => {
   // Buscar categorias da API
   const carregarCategorias = async () => {
     try {
-      const response = await axios.get(`${API_URL}/categorias`);
+      const response = await categoriasAPI.listar();
       setCategorias(response.data.categorias);
     } catch (error) {
       showSnackbar('Erro ao carregar categorias', 'error');
@@ -73,13 +71,13 @@ const GerenciarCategorias = () => {
     try {
       if (dialog.categoria) {
         // Atualizar categoria existente
-        await axios.put(`${API_URL}/categorias/${dialog.categoria.id}`, {
+        await categoriasAPI.atualizar(dialog.categoria.id, {
           nome: dialog.nome
         });
         showSnackbar('Categoria atualizada com sucesso!');
       } else {
         // Criar nova categoria
-        await axios.post(`${API_URL}/categorias`, {
+        await categoriasAPI.criar({
           nome: dialog.nome
         });
         showSnackbar('Categoria criada com sucesso!');
@@ -95,7 +93,7 @@ const GerenciarCategorias = () => {
   const removerCategoria = async (id) => {
     if (window.confirm('Tem certeza que deseja remover esta categoria?')) {
       try {
-        await axios.delete(`${API_URL}/categorias/${id}`);
+        await categoriasAPI.remover(id);
         showSnackbar('Categoria removida com sucesso!');
         carregarCategorias();
       } catch (error) {
