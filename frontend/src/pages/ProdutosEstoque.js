@@ -34,7 +34,8 @@ import {
   Edit as EditIcon,
   MoreVert as MoreVertIcon,
   TrendingDown as TrendingDownIcon,
-  Category as CategoryIcon
+  Category as CategoryIcon,
+  CalendarToday as CalendarIcon
 } from '@mui/icons-material';
 import { Link } from 'react-router-dom';
 import { estoqueAPI, categoriasAPI } from '../services/api';
@@ -146,6 +147,12 @@ const ProdutosEstoque = () => {
     setProdutoMenu(null);
   };
 
+  const formatarData = (data) => {
+    if (!data) return null;
+    const date = new Date(data);
+    return date.toLocaleDateString('pt-BR');
+  };
+
   const ProductCard = ({ produto, index }) => (
     <Zoom in={true} timeout={300} style={{ transitionDelay: `${index * 100}ms` }}>
       <Card 
@@ -217,6 +224,16 @@ const ProdutosEstoque = () => {
             </Typography>
             <Typography variant="h6" sx={{ fontWeight: 600 }}>
               {produto.quantidade} {produto.unidade}
+            </Typography>
+          </Box>
+          
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+            <Typography variant="body2" color="text.secondary" sx={{ display: 'flex', alignItems: 'center' }}>
+              <CalendarIcon sx={{ fontSize: 16, mr: 0.5 }} />
+              Validade
+            </Typography>
+            <Typography variant="body1" sx={{ fontWeight: 600, color: produto.dataValidade ? 'text.primary' : 'text.disabled' }}>
+              {produto.dataValidade ? formatarData(produto.dataValidade) : 'Não informada'}
             </Typography>
           </Box>
           

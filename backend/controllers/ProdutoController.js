@@ -1,5 +1,17 @@
 import Produto from '../models/Produto.js';
 
+// Converter snake_case para camelCase
+const converterParaCamelCase = (produto) => {
+  if (!produto) return null;
+  return {
+    ...produto,
+    categoriaId: produto.categoria_id,
+    dataValidade: produto.data_validade,
+    createdAt: produto.created_at,
+    updatedAt: produto.updated_at
+  };
+};
+
 // Controller responsável pela lógica de negócio dos produtos
 class ProdutoController {
   // Listar todos os produtos do estoque
@@ -8,7 +20,7 @@ class ProdutoController {
       const produtos = await Produto.listarTodos();
       res.json({
         total: produtos.length,
-        produtos
+        produtos: produtos.map(converterParaCamelCase)
       });
     } catch (error) {
       res.status(500).json({ erro: 'Erro ao buscar produtos' });
@@ -25,7 +37,7 @@ class ProdutoController {
         return res.status(404).json({ erro: 'Produto não encontrado' });
       }
       
-      res.json(produto);
+      res.json(converterParaCamelCase(produto));
     } catch (error) {
       res.status(500).json({ erro: 'Erro ao buscar produto' });
     }
@@ -40,7 +52,7 @@ class ProdutoController {
       res.json({
         categoriaId,
         total: produtos.length,
-        produtos
+        produtos: produtos.map(converterParaCamelCase)
       });
     } catch (error) {
       res.status(500).json({ erro: 'Erro ao filtrar produtos' });
@@ -55,7 +67,7 @@ class ProdutoController {
       res.json({
         alerta: 'Estoque baixo',
         total: produtos.length,
-        produtos
+        produtos: produtos.map(converterParaCamelCase)
       });
     } catch (error) {
       res.status(500).json({ erro: 'Erro ao buscar produtos com estoque baixo' });
@@ -76,7 +88,7 @@ class ProdutoController {
       res.json({
         busca: nome,
         total: produtos.length,
-        produtos
+        produtos: produtos.map(converterParaCamelCase)
       });
     } catch (error) {
       res.status(500).json({ erro: 'Erro ao buscar produtos por nome' });
@@ -99,7 +111,7 @@ class ProdutoController {
       
       res.status(201).json({
         mensagem: 'Produto adicionado com sucesso',
-        produto
+        produto: converterParaCamelCase(produto)
       });
     } catch (error) {
       res.status(500).json({ erro: 'Erro ao adicionar produto' });
@@ -127,7 +139,7 @@ class ProdutoController {
       
       res.json({
         mensagem: 'Produto atualizado com sucesso',
-        produto
+        produto: converterParaCamelCase(produto)
       });
     } catch (error) {
       res.status(500).json({ erro: 'Erro ao atualizar produto' });
@@ -178,7 +190,7 @@ class ProdutoController {
       
       res.json({
         mensagem: `${operacao} de ${qtd} ${produtoAtual.unidade} realizada`,
-        produto
+        produto: converterParaCamelCase(produto)
       });
     } catch (error) {
       res.status(500).json({ erro: 'Erro ao atualizar quantidade' });
@@ -197,7 +209,7 @@ class ProdutoController {
       
       res.json({
         mensagem: 'Produto removido com sucesso',
-        produto
+        produto: converterParaCamelCase(produto)
       });
     } catch (error) {
       res.status(500).json({ erro: 'Erro ao remover produto' });
