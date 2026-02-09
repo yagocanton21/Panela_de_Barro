@@ -24,7 +24,11 @@ import {
   MenuItem,
   Skeleton,
   Zoom,
-  Fade
+  Fade,
+  Pagination,
+  Select,
+  FormControl,
+  InputLabel
 } from '@mui/material';
 import {
   Delete as DeleteIcon,
@@ -52,11 +56,18 @@ const ProdutosEstoque = () => {
   const [categoriaFiltro, setCategoriaFiltro] = useState('todas');
   const [menuAnchor, setMenuAnchor] = useState(null);
   const [produtoMenu, setProdutoMenu] = useState(null);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalProdutos, setTotalProdutos] = useState(0);
+  const [itensPorPagina, setItensPorPagina] = useState(9);
 
   useEffect(() => {
     carregarCategorias();
-    carregarProdutos();
   }, []);
+
+  useEffect(() => {
+    carregarProdutos();
+  }, [page, itensPorPagina, categoriaFiltro, filtro]);
 
   const carregarCategorias = async () => {
     try {
@@ -68,25 +79,26 @@ const ProdutosEstoque = () => {
   };
 
   useEffect(() => {
-    let produtosFiltrados = produtos.filter(produto =>
-      produto.nome.toLowerCase().includes(filtro.toLowerCase()) ||
-      produto.categoria.toLowerCase().includes(filtro.toLowerCase())
-    );
-
-    if (categoriaFiltro !== 'todas') {
-      produtosFiltrados = produtosFiltrados.filter(produto => 
-        produto.categoria.toLowerCase() === categoriaFiltro.toLowerCase()
-      );
-    }
-
+    let produtosFiltrados = produtos;
     setProdutosFiltrados(produtosFiltrados);
-  }, [produtos, filtro, categoriaFiltro]);
+  }, [produtos]);
 
   const carregarProdutos = async () => {
     try {
       setLoading(true);
-      const response = await estoqueAPI.listar();
+      const params = { page, limit: itensPorPagina };
+      
+      if (filtro) params.nome = filtro;
+      if (categoriaFiltro !== 'todas') {
+        const categoria = categorias.find(c => c.nome === categoriaFiltro);
+        if (categoria) params.categoriaId = categoria.id;
+      }
+      
+      const response = await estoqueAPI.listar(params);
       setProdutos(response.data.produtos || []);
+      setProdutosFiltrados(response.data.produtos || []);
+      setTotalPages(response.data.paginacao?.totalPages || 1);
+      setTotalProdutos(response.data.paginacao?.total || 0);
     } catch (error) {
       console.error('Erro ao carregar produtos:', error);
       showSnackbar('Erro ao carregar produtos', 'error');
@@ -117,6 +129,26 @@ const ProdutosEstoque = () => {
       setLoading(false);
       setDeleteDialog({ open: false, produto: null });
     }
+  };
+
+  const handlePageChange = (event, value) => {
+    setPage(value);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleItensPorPaginaChange = (event) => {
+    setItensPorPagina(event.target.value);
+    setPage(1);
+  };
+
+  const handleCategoriaChange = (event) => {
+    setCategoriaFiltro(event.target.value);
+    setPage(1);
+  };
+
+  const handleFiltroChange = (event) => {
+    setFiltro(event.target.value);
+    setPage(1);
   };
 
   const getCorCategoria = (categoria) => {
@@ -277,7 +309,7 @@ const ProdutosEstoque = () => {
                 fullWidth
                 label="Buscar produtos..."
                 value={filtro}
-                onChange={(e) => setFiltro(e.target.value)}
+                onChange={handleFiltroChange}
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
@@ -299,7 +331,7 @@ const ProdutosEstoque = () => {
                 fullWidth
                 label="Filtrar por categoria"
                 value={categoriaFiltro}
-                onChange={(e) => setCategoriaFiltro(e.target.value)}
+                onChange={handleCategoriaChange}
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
@@ -325,19 +357,39 @@ const ProdutosEstoque = () => {
 
         <Paper elevation={0} sx={{ p: 4, border: '1px solid', borderColor: 'divider' }}>
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 4 }}>
-            <Typography variant="h4" sx={{ fontWeight: 700, display: 'flex', alignItems: 'center' }}>
-              <InventoryIcon sx={{ mr: 2, fontSize: 32 }} />
-              Produtos ({produtosFiltrados.length})
-            </Typography>
-            <Button
-              component={Link}
-              to="/adicionar"
-              variant="contained"
-              startIcon={<AddIcon />}
-              sx={{ borderRadius: 3, px: 3 }}
-            >
-              Adicionar Produto
-            </Button>
+            <Box>
+              <Typography variant="h4" sx={{ fontWeight: 700, display: 'flex', alignItems: 'center' }}>
+                <InventoryIcon sx={{ mr: 2, fontSize: 32 }} />
+                Produtos
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                Mostrando {produtosFiltrados.length > 0 ? ((page - 1) * itensPorPagina) + 1 : 0} - {Math.min(page * itensPorPagina, totalProdutos)} de {totalProdutos} produtos
+              </Typography>
+            </Box>
+            <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+              <FormControl size="small" sx={{ minWidth: 120 }}>
+                <InputLabel>Por página</InputLabel>
+                <Select
+                  value={itensPorPagina}
+                  label="Por página"
+                  onChange={handleItensPorPaginaChange}
+                >
+                  <MenuItem value={6}>6</MenuItem>
+                  <MenuItem value={9}>9</MenuItem>
+                  <MenuItem value={12}>12</MenuItem>
+                  <MenuItem value={24}>24</MenuItem>
+                </Select>
+              </FormControl>
+              <Button
+                component={Link}
+                to="/adicionar"
+                variant="contained"
+                startIcon={<AddIcon />}
+                sx={{ borderRadius: 3, px: 3 }}
+              >
+                Adicionar Produto
+              </Button>
+            </Box>
           </Box>
           
           {loading ? (
@@ -380,13 +432,29 @@ const ProdutosEstoque = () => {
               </Button>
             </Box>
           ) : (
-            <Grid container spacing={3}>
-              {produtosFiltrados.map((produto, index) => (
-                <Grid item xs={12} sm={6} md={4} key={produto.id}>
-                  <ProductCard produto={produto} index={index} />
-                </Grid>
-              ))}
-            </Grid>
+            <>
+              <Grid container spacing={3}>
+                {produtosFiltrados.map((produto, index) => (
+                  <Grid item xs={12} sm={6} md={4} key={produto.id}>
+                    <ProductCard produto={produto} index={index} />
+                  </Grid>
+                ))}
+              </Grid>
+              
+              {totalPages > 1 && (
+                <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+                  <Pagination 
+                    count={totalPages} 
+                    page={page} 
+                    onChange={handlePageChange}
+                    color="primary"
+                    size="large"
+                    showFirstButton
+                    showLastButton
+                  />
+                </Box>
+              )}
+            </>
           )}
         </Paper>
 

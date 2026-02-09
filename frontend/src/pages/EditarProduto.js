@@ -44,6 +44,7 @@ function EditarProduto() {
     categoriaId: '',
     quantidade: '',
     unidade: '',
+    estoqueMinimo: 10,
     dataValidade: '',
     fornecedor: ''
   });
@@ -73,6 +74,7 @@ function EditarProduto() {
         categoriaId: produtoData.categoria_id || '',
         quantidade: produtoData.quantidade || '',
         unidade: produtoData.unidade || '',
+        estoqueMinimo: produtoData.estoque_minimo || 10,
         dataValidade: produtoData.data_validade ? produtoData.data_validade.split('T')[0] : '',
         fornecedor: produtoData.fornecedor || ''
       });
@@ -123,6 +125,7 @@ function EditarProduto() {
         categoriaId: Number(produto.categoriaId),
         quantidade: Number(produto.quantidade),
         unidade: produto.unidade,
+        estoqueMinimo: Number(produto.estoqueMinimo) || 10,
         dataValidade: produto.dataValidade || null,
         fornecedor: produto.fornecedor || null
       };
@@ -215,6 +218,16 @@ function EditarProduto() {
                   </MenuItem>
                 ))}
               </TextField>
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Estoque Mínimo"
+                type="number"
+                value={produto.estoqueMinimo}
+                onChange={handleChange('estoqueMinimo')}
+                helperText="Quantidade mínima para alerta"
+              />
             </Grid>
             <Grid item xs={12} sm={6}>
               <TextField

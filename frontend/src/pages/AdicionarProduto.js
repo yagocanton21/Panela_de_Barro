@@ -28,7 +28,6 @@ import {
   Inventory as InventoryIcon,
   Category as CategoryIcon,
   Scale as ScaleIcon,
-  AttachMoney as MoneyIcon,
   CalendarToday as CalendarIcon,
   Business as BusinessIcon,
   CheckCircle as CheckCircleIcon
@@ -42,7 +41,7 @@ const AdicionarProduto = () => {
     categoriaId: '',
     quantidade: '',
     unidade: '',
-    preco: '',
+    estoqueMinimo: 10,
     dataValidade: '',
     fornecedor: ''
   });
@@ -94,7 +93,7 @@ const AdicionarProduto = () => {
         categoriaId: parseInt(formData.categoriaId),
         quantidade: parseInt(formData.quantidade),
         unidade: formData.unidade,
-        ...(formData.preco && { preco: parseFloat(formData.preco) }),
+        estoqueMinimo: parseInt(formData.estoqueMinimo) || 10,
         ...(formData.dataValidade && { dataValidade: formData.dataValidade }),
         ...(formData.fornecedor && { fornecedor: formData.fornecedor })
       };
@@ -107,7 +106,7 @@ const AdicionarProduto = () => {
         categoriaId: '',
         quantidade: '',
         unidade: '',
-        preco: '',
+        estoqueMinimo: 10,
         dataValidade: '',
         fornecedor: ''
       });
@@ -278,16 +277,17 @@ const AdicionarProduto = () => {
               <Grid item xs={12} md={6}>
                 <TextField
                   fullWidth
-                  label="Preço Unitário (Opcional)"
+                  label="Estoque Mínimo"
                   type="number"
-                  value={formData.preco}
-                  onChange={(e) => handleInputChange('preco', e.target.value)}
+                  value={formData.estoqueMinimo}
+                  onChange={(e) => handleInputChange('estoqueMinimo', e.target.value)}
                   variant="outlined"
-                  inputProps={{ min: 0, step: 0.01 }}
+                  inputProps={{ min: 0 }}
+                  helperText="Quantidade mínima para alerta de estoque baixo"
                   InputProps={{
                     startAdornment: (
                       <InputAdornment position="start">
-                        <MoneyIcon color="action" />
+                        <ScaleIcon color="action" />
                       </InputAdornment>
                     ),
                   }}
@@ -380,12 +380,6 @@ const AdicionarProduto = () => {
                     <Typography variant="body2" color="text.secondary">Quantidade:</Typography>
                     <Typography variant="body1" sx={{ fontWeight: 600 }}>{formData.quantidade} {formData.unidade}</Typography>
                   </Grid>
-                  {formData.preco && (
-                    <Grid item xs={6}>
-                      <Typography variant="body2" color="text.secondary">Preço:</Typography>
-                      <Typography variant="body1" sx={{ fontWeight: 600 }}>R$ {parseFloat(formData.preco).toFixed(2)}</Typography>
-                    </Grid>
-                  )}
                   {formData.dataValidade && (
                     <Grid item xs={6}>
                       <Typography variant="body2" color="text.secondary">Validade:</Typography>

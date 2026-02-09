@@ -6,6 +6,7 @@ const converterParaCamelCase = (produto) => {
   return {
     ...produto,
     categoriaId: produto.categoria_id,
+    estoqueMinimo: produto.estoque_minimo,
     dataValidade: produto.data_validade,
     createdAt: produto.created_at,
     updatedAt: produto.updated_at
@@ -14,13 +15,24 @@ const converterParaCamelCase = (produto) => {
 
 // Controller responsável pela lógica de negócio dos produtos
 class ProdutoController {
-  // Listar todos os produtos do estoque
+  // Listar todos os produtos do estoque (com paginação e filtros)
   static async listar(req, res) {
     try {
-      const produtos = await Produto.listarTodos();
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 10;
+      const offset = (page - 1) * limit;
+      const { nome, categoriaId } = req.query;
+
+      const { produtos, total } = await Produto.listarTodos(limit, offset, nome, categoriaId);
+      
       res.json({
-        total: produtos.length,
-        produtos: produtos.map(converterParaCamelCase)
+        produtos: produtos.map(converterParaCamelCase),
+        paginacao: {
+          total,
+          page,
+          limit,
+          totalPages: Math.ceil(total / limit)
+        }
       });
     } catch (error) {
       res.status(500).json({ erro: 'Erro ao buscar produtos' });
@@ -98,13 +110,28 @@ class ProdutoController {
   // Criar novo produto
   static async criar(req, res) {
     try {
-      const { nome, categoriaId, quantidade, unidade } = req.body;
+      const { nome, categoriaId, quantidade, unidade, estoqueMinimo } = req.body;
       
       // Validar campos obrigatórios
       if (!nome || !categoriaId || quantidade === undefined || !unidade) {
         return res.status(400).json({ 
           erro: 'Campos obrigatórios: nome, categoriaId, quantidade, unidade' 
         });
+      }
+
+      // Validar nome não vazio
+      if (nome.trim().length < 2) {
+        return res.status(400).json({ erro: 'Nome deve ter no mínimo 2 caracteres' });
+      }
+
+      // Validar quantidade positiva
+      if (quantidade < 0) {
+        return res.status(400).json({ erro: 'Quantidade não pode ser negativa' });
+      }
+
+      // Validar estoque mínimo positivo
+      if (estoqueMinimo !== undefined && estoqueMinimo < 0) {
+        return res.status(400).json({ erro: 'Estoque mínimo não pode ser negativo' });
       }
       
       const produto = await Produto.criar(req.body);
@@ -114,6 +141,16 @@ class ProdutoController {
         produto: converterParaCamelCase(produto)
       });
     } catch (error) {
+      // Verificar se é erro de duplicação
+      if (error.code === '23505') {
+        return res.status(409).json({ 
+          erro: 'Produto já existe no estoque. Atualize a quantidade ao invés de criar um novo.' 
+        });
+      }
+      // Verificar se é erro de constraint
+      if (error.code === '23514') {
+        return res.status(400).json({ erro: 'Dados inválidos. Verifique os valores informados.' });
+      }
       res.status(500).json({ erro: 'Erro ao adicionar produto' });
     }
   }
@@ -122,13 +159,28 @@ class ProdutoController {
   static async atualizar(req, res) {
     try {
       const id = parseInt(req.params.id);
-      const { nome, categoriaId, quantidade, unidade } = req.body;
+      const { nome, categoriaId, quantidade, unidade, estoqueMinimo } = req.body;
       
       // Validar campos obrigatórios
       if (!nome || !categoriaId || quantidade === undefined || !unidade) {
         return res.status(400).json({ 
           erro: 'Campos obrigatórios: nome, categoriaId, quantidade, unidade' 
         });
+      }
+
+      // Validar nome não vazio
+      if (nome.trim().length < 2) {
+        return res.status(400).json({ erro: 'Nome deve ter no mínimo 2 caracteres' });
+      }
+
+      // Validar quantidade positiva
+      if (quantidade < 0) {
+        return res.status(400).json({ erro: 'Quantidade não pode ser negativa' });
+      }
+
+      // Validar estoque mínimo positivo
+      if (estoqueMinimo !== undefined && estoqueMinimo < 0) {
+        return res.status(400).json({ erro: 'Estoque mínimo não pode ser negativo' });
       }
       
       const produto = await Produto.atualizar(id, req.body);
@@ -142,6 +194,9 @@ class ProdutoController {
         produto: converterParaCamelCase(produto)
       });
     } catch (error) {
+      if (error.code === '23514') {
+        return res.status(400).json({ erro: 'Dados inválidos. Verifique os valores informados.' });
+      }
       res.status(500).json({ erro: 'Erro ao atualizar produto' });
     }
   }
@@ -157,6 +212,11 @@ class ProdutoController {
         return res.status(400).json({ 
           erro: 'Campos obrigatórios: operacao (entrada/saida), quantidade' 
         });
+      }
+
+      // Validar quantidade positiva
+      if (quantidade <= 0) {
+        return res.status(400).json({ erro: 'Quantidade deve ser maior que zero' });
       }
       
       const qtd = Number(quantidade);

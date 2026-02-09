@@ -1,9 +1,10 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:3001';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
 
 export const estoqueAPI = {
-  listar: () => axios.get(`${API_BASE_URL}/estoque`),
+  listar: (params = {}) => axios.get(`${API_BASE_URL}/estoque`, { params }),
+  
   buscarPorId: (id) => axios.get(`${API_BASE_URL}/estoque/${id}`),
   adicionar: (produto) => axios.post(`${API_BASE_URL}/estoque`, produto),
   atualizar: (id, produto) => axios.put(`${API_BASE_URL}/estoque/${id}`, produto),
