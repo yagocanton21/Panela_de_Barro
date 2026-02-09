@@ -1,40 +1,5 @@
--- Limpar dados existentes
-DROP TABLE IF EXISTS produtos CASCADE;
-DROP TABLE IF EXISTS categorias CASCADE;
-
--- Criar tabela de categorias
-CREATE TABLE categorias (
-    id SERIAL PRIMARY KEY,
-    nome VARCHAR(100) NOT NULL UNIQUE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- Criar tabela de produtos
-CREATE TABLE produtos (
-    id SERIAL PRIMARY KEY,
-    nome VARCHAR(255) NOT NULL,
-    categoria_id INTEGER NOT NULL REFERENCES categorias(id),
-    quantidade INTEGER NOT NULL DEFAULT 0,
-    unidade VARCHAR(20) NOT NULL,
-    estoque_minimo INTEGER DEFAULT 10,
-    data_validade DATE,
-    fornecedor VARCHAR(255),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT unique_produto_categoria UNIQUE(nome, categoria_id)
-);
-
--- Inserir categorias padrão
-INSERT INTO categorias (nome) VALUES 
-('Carnes'),
-('Vegetais'),
-('Grãos'),
-('Laticínios'),
-('Bebidas'),
-('Temperos'),
-('Frutas');
-
--- Produtos de exemplo para testar paginação (100 produtos)
+-- Script para popular o banco com 100 produtos de exemplo
+-- Execute após o init.sql para testar a paginação
 
 -- Produtos de Carnes (categoria_id = 1)
 INSERT INTO produtos (nome, categoria_id, quantidade, unidade, estoque_minimo, data_validade, fornecedor) VALUES
@@ -150,19 +115,5 @@ INSERT INTO produtos (nome, categoria_id, quantidade, unidade, estoque_minimo, f
 ('Abacate', 7, 28, 'kg', 10, 'Hortifruti Silva'),
 ('Melão', 7, 32, 'kg', 12, 'Hortifruti Central');
 
-
-
--- Função para atualizar updated_at automaticamente
-CREATE OR REPLACE FUNCTION update_updated_at_column()
-RETURNS TRIGGER AS $$
-BEGIN
-    NEW.updated_at = CURRENT_TIMESTAMP;
-    RETURN NEW;
-END;
-$$ language 'plpgsql';
-
--- Trigger para atualizar updated_at
-CREATE TRIGGER update_produtos_updated_at 
-    BEFORE UPDATE ON produtos 
-    FOR EACH ROW 
-    EXECUTE FUNCTION update_updated_at_column();
+-- Mensagem de confirmação
+SELECT 'Banco populado com sucesso! Total de produtos:' as mensagem, COUNT(*) as total FROM produtos;
