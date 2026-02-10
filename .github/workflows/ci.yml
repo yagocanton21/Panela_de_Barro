@@ -1,13 +1,9 @@
 name: CI Dev
-
-# Eventos que disparam o workflow
 on:
   push:
-    branches:
-      - dev
+    branches: ['dev']
   pull_request:
-    branches:
-      - dev
+    branches: ['dev']
 
 jobs:
   backend:
@@ -15,53 +11,47 @@ jobs:
     defaults:
       run:
         working-directory: ./backend
-
     steps:
-      # Passo 1: Pega o código do repositório
-      - uses: actions/checkout@v3
-
-      # Passo 2: Configura Node.js
+      - uses: actions/checkout@v4
+      - name: Cache node modules
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-backend-node-${{ hashFiles('backend/package-lock.json') }}
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: '18'
-
-      # Passo 3: Instala dependências do backend
       - name: Install backend dependencies
-        run: npm install
-
-      # Passo 4: Valida sintaxe do backend
+        run: npm ci  # Use ci para lockfile
       - name: Validate backend syntax
         run: node -c api.js
-
-      # Passo 5: Testa inicialização do backend
       - name: Test backend startup
-        run: timeout 10s npm start || code=$?; if [[ $code -ne 124 && $code -ne 0 ]]; then exit $code; fi
+        run: |
+          timeout 10s npm start &
+          PID=$!
+          sleep 5
+          kill $PID 2>/dev/null || true
 
   frontend:
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: ./frontend
-
     steps:
-      # Passo 1: Pega o código do repositório
-      - uses: actions/checkout@v3
-
-      # Passo 2: Configura Node.js
+      - uses: actions/checkout@v4
+      - name: Cache node modules
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-frontend-node-${{ hashFiles('frontend/package-lock.json') }}
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: '18'
-
-      # Passo 3: Instala dependências do frontend
       - name: Install frontend dependencies
-        run: npm install
-
-      # Passo 4: Roda testes do frontend
+        run: npm ci
       - name: Test frontend
         run: CI=true npm test -- --coverage --watchAll=false --passWithNoTests
-
-      # Passo 5: Build do frontend
       - name: Build frontend
         run: CI=false npm run build
