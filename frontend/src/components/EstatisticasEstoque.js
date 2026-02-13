@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Grid,
   Paper,
@@ -10,28 +10,50 @@ import {
   Inventory,
   Category
 } from '@mui/icons-material';
+import { estoqueAPI } from '../services/api';
 
-const EstatisticasEstoque = ({ produtos }) => {
-  const totalProdutos = produtos.length;
-  const totalQuantidade = produtos.reduce((acc, produto) => acc + produto.quantidade, 0);
-  const categorias = [...new Set(produtos.map(produto => produto.categoria))].length;
+const EstatisticasEstoque = () => {
+  const [stats, setStats] = useState({
+    totalProdutos: 0,
+    totalQuantidade: 0,
+    categorias: 0
+  });
+
+  useEffect(() => {
+    carregarEstatisticas();
+  }, []);
+
+  const carregarEstatisticas = async () => {
+    try {
+      const response = await estoqueAPI.listar({ page: 1, limit: 9999 });
+      const produtos = response.data.produtos || [];
+      
+      const totalProdutos = produtos.length;
+      const totalQuantidade = produtos.reduce((acc, produto) => acc + produto.quantidade, 0);
+      const categorias = [...new Set(produtos.map(produto => produto.categoria))].length;
+
+      setStats({ totalProdutos, totalQuantidade, categorias });
+    } catch (error) {
+      console.error('Erro ao carregar estatísticas:', error);
+    }
+  };
 
   const estatisticas = [
     {
       titulo: 'Total de Produtos',
-      valor: totalProdutos,
+      valor: stats.totalProdutos,
       icone: <Inventory />,
       cor: 'primary'
     },
     {
       titulo: 'Quantidade Total',
-      valor: totalQuantidade,
+      valor: stats.totalQuantidade,
       icone: <TrendingUp />,
       cor: 'success'
     },
     {
       titulo: 'Categorias',
-      valor: categorias,
+      valor: stats.categorias,
       icone: <Category />,
       cor: 'warning'
     }

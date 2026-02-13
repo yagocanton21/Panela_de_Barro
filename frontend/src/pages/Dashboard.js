@@ -49,7 +49,7 @@ const Dashboard = () => {
 
   const carregarDados = async () => {
     try {
-      const response = await estoqueAPI.listar();
+      const response = await estoqueAPI.listar({ page: 1, limit: 9999 });
       const produtos = response.data.produtos || [];
       
       const produtosBaixoEstoque = produtos.filter(p => p.quantidade < 10).length;
