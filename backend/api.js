@@ -2,6 +2,7 @@ import express from "express";
 import dotenv from "dotenv";
 import estoqueRoutes from "./routes/estoque.js";
 import categoriasRoutes from "./routes/categorias.js";
+import authRoutes from "./routes/auth.js";
 
 // Carregar variáveis de ambiente
 dotenv.config();
@@ -25,6 +26,7 @@ app.use((req, res, next) => {
 });
 
 // Rotas da API
+app.use('/auth', authRoutes);
 app.use('/estoque', estoqueRoutes);
 app.use('/categorias', categoriasRoutes);
 
@@ -35,6 +37,9 @@ app.get('/', (req, res) => {
         versao: '1.0.0',
         arquitetura: 'MVC',
         endpoints: {
+            'POST /auth/login': 'Login de usuário',
+            'POST /auth/registrar': 'Registrar novo usuário',
+            'GET /auth/verificar': 'Verificar token',
             'GET /estoque': 'Listar todos os produtos',
             'GET /estoque/buscar?nome=xxx': 'Buscar produtos por nome',
             'GET /estoque/:id': 'Buscar produto por ID',

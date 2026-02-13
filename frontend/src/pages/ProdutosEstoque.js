@@ -59,7 +59,10 @@ const ProdutosEstoque = () => {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalProdutos, setTotalProdutos] = useState(0);
-  const [itensPorPagina, setItensPorPagina] = useState(9);
+  const [itensPorPagina, setItensPorPagina] = useState(() => {
+    const saved = localStorage.getItem('itensPorPagina');
+    return saved ? parseInt(saved) : 9;
+  });
 
   useEffect(() => {
     carregarCategorias();
@@ -137,7 +140,9 @@ const ProdutosEstoque = () => {
   };
 
   const handleItensPorPaginaChange = (event) => {
-    setItensPorPagina(event.target.value);
+    const newValue = event.target.value;
+    setItensPorPagina(newValue);
+    localStorage.setItem('itensPorPagina', newValue);
     setPage(1);
   };
 
@@ -298,11 +303,11 @@ const ProdutosEstoque = () => {
       <Container maxWidth="lg">
         <Fade in={!loading} timeout={800}>
           <Box sx={{ mb: 4 }}>
-            <EstatisticasEstoque produtos={produtos} />
+            <EstatisticasEstoque />
           </Box>
         </Fade>
         
-        <Paper elevation={0} sx={{ p: 3, mb: 4, border: '1px solid', borderColor: 'divider' }}>
+        <Paper elevation={0} sx={{ p: { xs: 2, sm: 3 }, mb: 4, border: '1px solid', borderColor: 'divider' }}>
           <Grid container spacing={3} alignItems="center">
             <Grid item xs={12} md={6}>
               <TextField
@@ -318,6 +323,7 @@ const ProdutosEstoque = () => {
                   ),
                 }}
                 variant="outlined"
+                size="small"
                 sx={{
                   '& .MuiOutlinedInput-root': {
                     borderRadius: 2,
@@ -339,6 +345,7 @@ const ProdutosEstoque = () => {
                     </InputAdornment>
                   ),
                 }}
+                size="small"
                 sx={{
                   '& .MuiOutlinedInput-root': {
                     borderRadius: 2,
@@ -355,10 +362,10 @@ const ProdutosEstoque = () => {
           </Grid>
         </Paper>
 
-        <Paper elevation={0} sx={{ p: 4, border: '1px solid', borderColor: 'divider' }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 4 }}>
+        <Paper elevation={0} sx={{ p: { xs: 2, sm: 4 }, border: '1px solid', borderColor: 'divider' }}>
+          <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, alignItems: { xs: 'flex-start', sm: 'center' }, justifyContent: 'space-between', mb: 4, gap: 2 }}>
             <Box>
-              <Typography variant="h4" sx={{ fontWeight: 700, display: 'flex', alignItems: 'center' }}>
+              <Typography variant="h4" sx={{ fontWeight: 700, display: 'flex', alignItems: 'center', fontSize: { xs: '1.5rem', sm: '2rem' } }}>
                 <InventoryIcon sx={{ mr: 2, fontSize: 32 }} />
                 Produtos
               </Typography>
@@ -366,8 +373,8 @@ const ProdutosEstoque = () => {
                 Mostrando {produtosFiltrados.length > 0 ? ((page - 1) * itensPorPagina) + 1 : 0} - {Math.min(page * itensPorPagina, totalProdutos)} de {totalProdutos} produtos
               </Typography>
             </Box>
-            <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-              <FormControl size="small" sx={{ minWidth: 120 }}>
+            <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', width: { xs: '100%', sm: 'auto' }, flexDirection: { xs: 'column', sm: 'row' } }}>
+              <FormControl size="small" sx={{ minWidth: { xs: '100%', sm: 120 } }}>
                 <InputLabel>Por página</InputLabel>
                 <Select
                   value={itensPorPagina}
@@ -385,7 +392,7 @@ const ProdutosEstoque = () => {
                 to="/adicionar"
                 variant="contained"
                 startIcon={<AddIcon />}
-                sx={{ borderRadius: 3, px: 3 }}
+                sx={{ borderRadius: 3, px: 3, width: { xs: '100%', sm: 'auto' } }}
               >
                 Adicionar Produto
               </Button>
@@ -442,7 +449,7 @@ const ProdutosEstoque = () => {
               </Grid>
               
               {totalPages > 1 && (
-                <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4, overflowX: 'auto', pb: 2 }}>
                   <Pagination 
                     count={totalPages} 
                     page={page} 
@@ -451,6 +458,8 @@ const ProdutosEstoque = () => {
                     size="large"
                     showFirstButton
                     showLastButton
+                    siblingCount={0}
+                    boundaryCount={1}
                   />
                 </Box>
               )}

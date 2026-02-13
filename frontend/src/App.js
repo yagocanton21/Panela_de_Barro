@@ -23,7 +23,8 @@ import {
   Dashboard as DashboardIcon,
   Menu as MenuIcon,
   KeyboardArrowUp,
-  Category as CategoryIcon
+  Category as CategoryIcon,
+  Logout as LogoutIcon
 } from '@mui/icons-material';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
@@ -32,6 +33,8 @@ import ProdutosEstoque from './pages/ProdutosEstoque';
 import AdicionarProduto from './pages/AdicionarProduto';
 import EditarProduto from './pages/EditarProduto';
 import GerenciarCategorias from './pages/GerenciarCategorias';
+import Login from './pages/Login';
+import { getAuthToken, getUsuario, logout } from './services/auth';
 import './App.css';
 
 const getTheme = () => createTheme({
@@ -120,6 +123,24 @@ const getTheme = () => createTheme({
 
 function App() {
   const theme = getTheme();
+  const [isAuthenticated, setIsAuthenticated] = React.useState(!!getAuthToken());
+
+  React.useEffect(() => {
+    setIsAuthenticated(!!getAuthToken());
+  }, []);
+
+  if (!isAuthenticated) {
+    return (
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <Router>
+          <Routes>
+            <Route path="*" element={<Login />} />
+          </Routes>
+        </Router>
+      </ThemeProvider>
+    );
+  }
 
   return (
     <ThemeProvider theme={theme}>
@@ -296,6 +317,17 @@ function Navigation() {
             </Box>
           )}
 
+          <Button
+            color="inherit"
+            startIcon={<LogoutIcon />}
+            onClick={() => {
+              logout();
+              window.location.reload();
+            }}
+            sx={{ ml: 2 }}
+          >
+            Sair
+          </Button>
         </Toolbar>
       </AppBar>
 
