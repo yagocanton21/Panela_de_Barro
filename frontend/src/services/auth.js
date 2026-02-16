@@ -10,28 +10,40 @@ export const authAPI = {
   })
 };
 
-export const setAuthToken = (token) => {
+export const setAuthToken = (token, lembrar = false) => {
   if (token) {
-    localStorage.setItem('token', token);
+    if (lembrar) {
+      localStorage.setItem('token', token);
+      localStorage.setItem('lembrar', 'true');
+    } else {
+      sessionStorage.setItem('token', token);
+      localStorage.removeItem('lembrar');
+    }
     axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
   } else {
     localStorage.removeItem('token');
+    sessionStorage.removeItem('token');
+    localStorage.removeItem('lembrar');
     delete axios.defaults.headers.common['Authorization'];
   }
 };
 
-export const getAuthToken = () => localStorage.getItem('token');
+export const getAuthToken = () => {
+  return localStorage.getItem('token') || sessionStorage.getItem('token');
+};
 
 export const getUsuario = () => {
-  const usuario = localStorage.getItem('usuario');
+  const usuario = localStorage.getItem('usuario') || sessionStorage.getItem('usuario');
   return usuario ? JSON.parse(usuario) : null;
 };
 
-export const setUsuario = (usuario) => {
+export const setUsuario = (usuario, lembrar = false) => {
   if (usuario) {
-    localStorage.setItem('usuario', JSON.stringify(usuario));
+    const storage = lembrar ? localStorage : sessionStorage;
+    storage.setItem('usuario', JSON.stringify(usuario));
   } else {
     localStorage.removeItem('usuario');
+    sessionStorage.removeItem('usuario');
   }
 };
 
