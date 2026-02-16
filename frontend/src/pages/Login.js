@@ -8,7 +8,9 @@ import {
   Box,
   Alert,
   InputAdornment,
-  IconButton
+  IconButton,
+  FormControlLabel,
+  Checkbox
 } from '@mui/material';
 import {
   Login as LoginIcon,
@@ -20,7 +22,7 @@ import { useNavigate } from 'react-router-dom';
 import { authAPI, setAuthToken, setUsuario } from '../services/auth';
 
 const Login = () => {
-  const [formData, setFormData] = useState({ username: '', senha: '' });
+  const [formData, setFormData] = useState({ username: '', senha: '', lembrar: false });
   const [erro, setErro] = useState('');
   const [loading, setLoading] = useState(false);
   const [mostrarSenha, setMostrarSenha] = useState(false);
@@ -35,8 +37,8 @@ const Login = () => {
       const response = await authAPI.login(formData.username, formData.senha);
       const { token, usuario } = response.data;
       
-      setAuthToken(token);
-      setUsuario(usuario);
+      setAuthToken(token, formData.lembrar);
+      setUsuario(usuario, formData.lembrar);
       
       window.location.href = '/';
     } catch (error) {
@@ -98,7 +100,7 @@ const Login = () => {
               value={formData.senha}
               onChange={(e) => setFormData({ ...formData, senha: e.target.value })}
               required
-              sx={{ mb: 3 }}
+              sx={{ mb: 2 }}
               InputProps={{
                 endAdornment: (
                   <InputAdornment position="end">
@@ -111,6 +113,18 @@ const Login = () => {
                   </InputAdornment>
                 )
               }}
+            />
+
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={formData.lembrar}
+                  onChange={(e) => setFormData({ ...formData, lembrar: e.target.checked })}
+                  color="primary"
+                />
+              }
+              label="Ficar conectado"
+              sx={{ mb: 3, display: 'flex', justifyContent: 'flex-start' }}
             />
 
             <Button
