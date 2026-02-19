@@ -24,7 +24,8 @@ import {
   Menu as MenuIcon,
   KeyboardArrowUp,
   Category as CategoryIcon,
-  Logout as LogoutIcon
+  Logout as LogoutIcon,
+  History as HistoryIcon
 } from '@mui/icons-material';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
@@ -33,6 +34,7 @@ import ProdutosEstoque from './pages/ProdutosEstoque';
 import AdicionarProduto from './pages/AdicionarProduto';
 import EditarProduto from './pages/EditarProduto';
 import GerenciarCategorias from './pages/GerenciarCategorias';
+import Historico from './pages/Historico';
 import Login from './pages/Login';
 import { getAuthToken, getUsuario, logout } from './services/auth';
 import './App.css';
@@ -165,6 +167,7 @@ function App() {
               <Route path="/adicionar" element={<AdicionarProduto />} />
               <Route path="/editar/:id" element={<EditarProduto />} />
               <Route path="/categorias" element={<GerenciarCategorias />} />
+              <Route path="/historico" element={<Historico />} />
             </Routes>
           </Box>
           
@@ -219,6 +222,7 @@ const menuItems = [
   { text: 'Estoque', icon: <InventoryIcon />, path: '/estoque' },
   { text: 'Adicionar', icon: <AddIcon />, path: '/adicionar' },
   { text: 'Categorias', icon: <CategoryIcon />, path: '/categorias' },
+  { text: 'Histórico', icon: <HistoryIcon />, path: '/historico' },
 ];
 
 function Navigation() {
