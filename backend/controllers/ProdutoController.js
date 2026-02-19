@@ -1,4 +1,5 @@
 import Produto from '../models/Produto.js';
+import HistoricoController from './HistoricoController.js';
 
 // Converter snake_case para camelCase
 const converterParaCamelCase = (produto) => {
@@ -136,6 +137,17 @@ class ProdutoController {
       
       const produto = await Produto.criar(req.body);
       
+      // Registrar no histórico
+      const usuarioId = req.usuario?.id || null;
+      await HistoricoController.registrar(
+        produto.id,
+        usuarioId,
+        'adicionar',
+        0,
+        quantidade,
+        `Produto "${nome}" adicionado ao estoque`
+      );
+      
       res.status(201).json({
         mensagem: 'Produto adicionado com sucesso',
         produto: converterParaCamelCase(produto)
@@ -183,11 +195,23 @@ class ProdutoController {
         return res.status(400).json({ erro: 'Estoque mínimo não pode ser negativo' });
       }
       
+      const produtoAnterior = await Produto.buscarPorId(id);
       const produto = await Produto.atualizar(id, req.body);
       
       if (!produto) {
         return res.status(404).json({ erro: 'Produto não encontrado' });
       }
+      
+      // Registrar no histórico
+      const usuarioId = req.usuario?.id || null;
+      await HistoricoController.registrar(
+        id,
+        usuarioId,
+        'editar',
+        produtoAnterior.quantidade,
+        quantidade,
+        `Produto "${nome}" editado`
+      );
       
       res.json({
         mensagem: 'Produto atualizado com sucesso',
@@ -248,6 +272,17 @@ class ProdutoController {
       
       const produto = await Produto.atualizarQuantidade(id, novaQuantidade);
       
+      // Registrar no histórico
+      const usuarioId = req.usuario?.id || null;
+      await HistoricoController.registrar(
+        id,
+        usuarioId,
+        operacao,
+        produtoAtual.quantidade,
+        novaQuantidade,
+        `${operacao === 'entrada' ? 'Entrada' : 'Saída'} de ${qtd} ${produtoAtual.unidade}`
+      );
+      
       res.json({
         mensagem: `${operacao} de ${qtd} ${produtoAtual.unidade} realizada`,
         produto: converterParaCamelCase(produto)
@@ -261,11 +296,23 @@ class ProdutoController {
   static async remover(req, res) {
     try {
       const id = parseInt(req.params.id);
+      const produtoAnterior = await Produto.buscarPorId(id);
       const produto = await Produto.remover(id);
       
       if (!produto) {
         return res.status(404).json({ erro: 'Produto não encontrado' });
       }
+      
+      // Registrar no histórico
+      const usuarioId = req.usuario?.id || null;
+      await HistoricoController.registrar(
+        id,
+        usuarioId,
+        'remover',
+        produtoAnterior.quantidade,
+        0,
+        `Produto "${produtoAnterior.nome}" removido do estoque`
+      );
       
       res.json({
         mensagem: 'Produto removido com sucesso',

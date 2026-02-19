@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import estoqueRoutes from "./routes/estoque.js";
 import categoriasRoutes from "./routes/categorias.js";
 import authRoutes from "./routes/auth.js";
+import historicoRoutes from "./routes/historico.js";
 
 // Carregar variáveis de ambiente
 dotenv.config();
@@ -29,6 +30,7 @@ app.use((req, res, next) => {
 app.use('/auth', authRoutes);
 app.use('/estoque', estoqueRoutes);
 app.use('/categorias', categoriasRoutes);
+app.use('/historico', historicoRoutes);
 
 // Rota raiz com informações da API
 app.get('/', (req, res) => {
@@ -52,7 +54,8 @@ app.get('/', (req, res) => {
             'GET /categorias': 'Listar todas as categorias',
             'POST /categorias': 'Criar nova categoria',
             'PUT /categorias/:id': 'Atualizar categoria',
-            'DELETE /categorias/:id': 'Remover categoria'
+            'DELETE /categorias/:id': 'Remover categoria',
+            'GET /historico': 'Listar histórico de movimentações'
         }
     });
 });
