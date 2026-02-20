@@ -1,5 +1,7 @@
+// Imports principais
 import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
+// Componentes Material-UI
 import {
   AppBar,
   Toolbar,
@@ -16,6 +18,7 @@ import {
   Fab,
   Zoom
 } from '@mui/material';
+// Ícones Material-UI
 import {
   Inventory as InventoryIcon,
   Restaurant as RestaurantIcon,
@@ -27,8 +30,10 @@ import {
   Logout as LogoutIcon,
   History as HistoryIcon
 } from '@mui/icons-material';
+// Tema Material-UI
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
+// Páginas da aplicação
 import Dashboard from './pages/Dashboard';
 import ProdutosEstoque from './pages/ProdutosEstoque';
 import AdicionarProduto from './pages/AdicionarProduto';
@@ -36,9 +41,11 @@ import EditarProduto from './pages/EditarProduto';
 import GerenciarCategorias from './pages/GerenciarCategorias';
 import Historico from './pages/Historico';
 import Login from './pages/Login';
+// Serviços de autenticação
 import { getAuthToken, getUsuario, logout } from './services/auth';
 import './App.css';
 
+// Configuração do tema personalizado
 const getTheme = () => createTheme({
   palette: {
     mode: 'light',
@@ -125,12 +132,14 @@ const getTheme = () => createTheme({
 
 function App() {
   const theme = getTheme();
+  // Verifica se o usuário está autenticado
   const [isAuthenticated, setIsAuthenticated] = React.useState(!!getAuthToken());
 
   React.useEffect(() => {
     setIsAuthenticated(!!getAuthToken());
   }, []);
 
+  // Se não autenticado, mostra tela de login
   if (!isAuthenticated) {
     return (
       <ThemeProvider theme={theme}>
@@ -144,6 +153,7 @@ function App() {
     );
   }
 
+  // Aplicação principal com navegação
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
@@ -156,11 +166,13 @@ function App() {
         <Router>
           <Navigation />
           
+          {/* Container principal das páginas */}
           <Box sx={{ 
             background: 'rgba(255,255,255,0.1)',
             minHeight: 'calc(100vh - 64px)',
             backdropFilter: 'blur(10px)',
           }}>
+            {/* Rotas da aplicação */}
             <Routes>
               <Route path="/" element={<Dashboard />} />
               <Route path="/estoque" element={<ProdutosEstoque />} />
@@ -178,9 +190,11 @@ function App() {
   );
 }
 
+// Botão flutuante para voltar ao topo
 function ScrollToTop() {
   const [showScroll, setShowScroll] = useState(false);
 
+  // Mostra botão após rolar 400px
   React.useEffect(() => {
     const checkScrollTop = () => {
       if (!showScroll && window.pageYOffset > 400) {
@@ -217,6 +231,7 @@ function ScrollToTop() {
   );
 }
 
+// Itens do menu de navegação
 const menuItems = [
   { text: 'Dashboard', icon: <DashboardIcon />, path: '/' },
   { text: 'Estoque', icon: <InventoryIcon />, path: '/estoque' },
@@ -225,6 +240,7 @@ const menuItems = [
   { text: 'Histórico', icon: <HistoryIcon />, path: '/historico' },
 ];
 
+// Componente de navegação (AppBar + Drawer)
 function Navigation() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const isMobile = useMediaQuery('(max-width:768px)');
@@ -234,6 +250,7 @@ function Navigation() {
     setMobileOpen(!mobileOpen);
   };
 
+  // Menu lateral (drawer) para mobile
   const drawer = (
     <Box sx={{ width: 250, pt: 2 }}>
       <Box sx={{ textAlign: 'center', mb: 2 }}>

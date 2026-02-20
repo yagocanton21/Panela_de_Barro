@@ -1,3 +1,4 @@
+// Componente de estatísticas do estoque
 import React, { useState, useEffect } from 'react';
 import {
   Grid,
@@ -13,16 +14,19 @@ import {
 import { estoqueAPI } from '../services/api';
 
 const EstatisticasEstoque = () => {
+  // Estado das estatísticas
   const [stats, setStats] = useState({
     totalProdutos: 0,
     totalQuantidade: 0,
     categorias: 0
   });
 
+  // Carrega estatísticas ao montar o componente
   useEffect(() => {
     carregarEstatisticas();
   }, []);
 
+  // Busca dados da API e calcula estatísticas
   const carregarEstatisticas = async () => {
     try {
       const response = await estoqueAPI.listar({ page: 1, limit: 9999 });
@@ -38,6 +42,7 @@ const EstatisticasEstoque = () => {
     }
   };
 
+  // Configuração dos cards de estatísticas
   const estatisticas = [
     {
       titulo: 'Total de Produtos',

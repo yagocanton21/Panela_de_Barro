@@ -1,7 +1,9 @@
+// Serviço de autenticação
 import axios from 'axios';
 
 const API_URL = 'http://localhost:3001';
 
+// Endpoints de autenticação
 export const authAPI = {
   login: (username, senha) => axios.post(`${API_URL}/auth/login`, { username, senha }),
   registrar: (nome, username, senha) => axios.post(`${API_URL}/auth/registrar`, { nome, username, senha }),
@@ -10,6 +12,7 @@ export const authAPI = {
   })
 };
 
+// Salva token no storage (localStorage ou sessionStorage)
 export const setAuthToken = (token, lembrar = false) => {
   if (token) {
     if (lembrar) {
@@ -28,15 +31,18 @@ export const setAuthToken = (token, lembrar = false) => {
   }
 };
 
+// Recupera token do storage
 export const getAuthToken = () => {
   return localStorage.getItem('token') || sessionStorage.getItem('token');
 };
 
+// Recupera dados do usuário do storage
 export const getUsuario = () => {
   const usuario = localStorage.getItem('usuario') || sessionStorage.getItem('usuario');
   return usuario ? JSON.parse(usuario) : null;
 };
 
+// Salva dados do usuário no storage
 export const setUsuario = (usuario, lembrar = false) => {
   if (usuario) {
     const storage = lembrar ? localStorage : sessionStorage;
@@ -47,6 +53,7 @@ export const setUsuario = (usuario, lembrar = false) => {
   }
 };
 
+// Remove token e dados do usuário (logout)
 export const logout = () => {
   setAuthToken(null);
   setUsuario(null);

@@ -1,3 +1,4 @@
+// Configuração do banco de dados PostgreSQL
 import pkg from 'pg';
 const { Pool } = pkg;
 

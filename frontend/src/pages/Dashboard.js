@@ -1,3 +1,4 @@
+// Página do dashboard com estatísticas
 import React, { useState, useEffect } from 'react';
 import {
   Container,
@@ -31,6 +32,7 @@ import {
 import { estoqueAPI, categoriasAPI } from '../services/api';
 
 const Dashboard = () => {
+  // Estado das estatísticas
   const [stats, setStats] = useState({
     totalProdutos: 0,
     produtosBaixoEstoque: 0,
@@ -43,10 +45,12 @@ const Dashboard = () => {
   const [dialogVencimento, setDialogVencimento] = useState(false);
   const [loading, setLoading] = useState(true);
 
+  // Carrega dados ao montar
   useEffect(() => {
     carregarDados();
   }, []);
 
+  // Busca produtos e calcula estatísticas
   const carregarDados = async () => {
     try {
       const response = await estoqueAPI.listar({ page: 1, limit: 9999 });
@@ -104,6 +108,7 @@ const Dashboard = () => {
     }
   };
 
+  // Componente de card de estatística
   const StatCard = ({ title, value, icon, color, subtitle, progress, index }) => (
     <Zoom in={!loading} timeout={300} style={{ transitionDelay: `${index * 100}ms` }}>
       <Card 

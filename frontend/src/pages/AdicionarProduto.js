@@ -1,3 +1,4 @@
+// Página de adicionar produto
 import React, { useState, useEffect } from 'react';
 import {
   Container,
@@ -36,6 +37,7 @@ import { Link } from 'react-router-dom';
 import { estoqueAPI, categoriasAPI } from '../services/api';
 
 const AdicionarProduto = () => {
+  // Estado do formulário
   const [formData, setFormData] = useState({
     nome: '',
     categoriaId: '',
@@ -52,10 +54,12 @@ const AdicionarProduto = () => {
 
   const steps = ['Informações Principais', 'Revisão e Confirmação'];
 
+  // Carrega categorias ao montar
   useEffect(() => {
     carregarCategorias();
   }, []);
 
+  // Busca categorias da API
   const carregarCategorias = async () => {
     try {
       const response = await categoriasAPI.listar();
@@ -65,6 +69,7 @@ const AdicionarProduto = () => {
     }
   };
 
+  // Opções de unidades de medida
   const unidadesPredefinidas = [
     { value: 'kg', label: 'Quilograma (kg)', icon: '⚖️' },
     { value: 'g', label: 'Grama (g)', icon: '⚖️' },
@@ -83,6 +88,7 @@ const AdicionarProduto = () => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
+  // Envia produto para API
   const adicionarProduto = async (e) => {
     e.preventDefault();
     try {
@@ -121,6 +127,7 @@ const AdicionarProduto = () => {
     }
   };
 
+  // Valida campos obrigatórios de cada etapa
   const isStepValid = (step) => {
     switch (step) {
       case 0:
@@ -144,6 +151,7 @@ const AdicionarProduto = () => {
     }
   };
 
+  // Renderiza conteúdo de cada etapa do formulário
   const renderStepContent = (step) => {
     switch (step) {
       case 0:
