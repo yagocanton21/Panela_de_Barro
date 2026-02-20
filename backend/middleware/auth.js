@@ -1,5 +1,7 @@
+// Middleware de autenticação
 import pool from '../database.js';
 
+// Verifica token e autentica usuário
 export const authMiddleware = async (req, res, next) => {
   try {
     const token = req.headers.authorization?.replace('Bearer ', '');

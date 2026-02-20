@@ -1,3 +1,4 @@
+// Arquivo principal da API
 import express from "express";
 import dotenv from "dotenv";
 import estoqueRoutes from "./routes/estoque.js";

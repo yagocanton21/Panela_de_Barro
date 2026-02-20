@@ -1,6 +1,8 @@
+// Controller de autenticação
 import pool from '../database.js';
 
 class AuthController {
+  // Login de usuário
   async login(req, res) {
     try {
       const { username, senha } = req.body;
@@ -39,6 +41,7 @@ class AuthController {
     }
   }
 
+  // Registrar novo usuário
   async registrar(req, res) {
     try {
       const { nome, username, senha } = req.body;
@@ -65,6 +68,7 @@ class AuthController {
     }
   }
 
+  // Verificar validade do token
   async verificarToken(req, res) {
     try {
       const token = req.headers.authorization?.replace('Bearer ', '');

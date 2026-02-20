@@ -1,3 +1,4 @@
+// Página de edição de produto
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
@@ -25,8 +26,10 @@ import {
 import { estoqueAPI, categoriasAPI } from '../services/api';
 
 
+// Opções de unidades
 const unidades = ['kg', 'g', 'L', 'ml', 'unidades', 'caixas', 'pacotes'];
 
+// Etapas do formulário
 const steps = ['Informações Básicas', 'Detalhes', 'Confirmação'];
 
 function EditarProduto() {
@@ -49,6 +52,7 @@ function EditarProduto() {
     fornecedor: ''
   });
 
+  // Carrega categorias e produto ao montar
   useEffect(() => {
     carregarCategorias();
     carregarProduto();
@@ -63,6 +67,7 @@ function EditarProduto() {
     }
   };
 
+  // Busca produto da API
   const carregarProduto = async () => {
     try {
       setLoading(true);
@@ -93,6 +98,7 @@ function EditarProduto() {
     setErro('');
   };
 
+  // Valida e avança para próxima etapa
   const handleNext = () => {
     if (activeStep === 0) {
       if (!produto.nome || !produto.categoriaId) {
@@ -115,6 +121,7 @@ function EditarProduto() {
     setErro('');
   };
 
+  // Envia dados atualizados para API
   const handleSubmit = async () => {
     try {
       setSalvando(true);
@@ -151,6 +158,7 @@ function EditarProduto() {
     );
   }
 
+  // Renderiza conteúdo de cada etapa
   const renderStepContent = (step) => {
     switch (step) {
       case 0:
