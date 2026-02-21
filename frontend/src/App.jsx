@@ -41,6 +41,7 @@ import EditarProduto from './pages/EditarProduto';
 import GerenciarCategorias from './pages/GerenciarCategorias';
 import Historico from './pages/Historico';
 import Login from './pages/Login';
+import ProdutosVencendo from './pages/ProdutosVencendo';
 import { getAuthToken, initializeAuth, logout } from './services/auth';
 import './App.css';
 
@@ -165,9 +166,9 @@ function App() {
       >
         <Router>
           <Navigation />
-          
+
           {/* Container principal das páginas */}
-          <Box sx={{ 
+          <Box sx={{
             background: 'rgba(255,255,255,0.1)',
             minHeight: 'calc(100vh - 64px)',
             backdropFilter: 'blur(10px)',
@@ -180,9 +181,10 @@ function App() {
               <Route path="/editar/:id" element={<EditarProduto />} />
               <Route path="/categorias" element={<GerenciarCategorias />} />
               <Route path="/historico" element={<Historico />} />
+              <Route path="/vencendo" element={<ProdutosVencendo />} />
             </Routes>
           </Box>
-          
+
           <ScrollToTop />
         </Router>
       </Box>
@@ -289,8 +291,8 @@ function Navigation() {
 
   return (
     <>
-      <AppBar 
-        position="sticky" 
+      <AppBar
+        position="sticky"
         elevation={0}
         sx={{
           background: 'linear-gradient(135deg, #8b4513 0%, #a0522d 100%)',
@@ -308,12 +310,12 @@ function Navigation() {
               <MenuIcon />
             </IconButton>
           )}
-          
+
           <RestaurantIcon sx={{ mr: 2, fontSize: 28 }} />
           <Typography variant="h6" component="div" sx={{ flexGrow: 1, fontWeight: 700 }}>
             Panela de Barro
           </Typography>
-          
+
           {!isMobile && (
             <Box sx={{ display: 'flex', gap: 1 }}>
               {menuItems.map((item) => (

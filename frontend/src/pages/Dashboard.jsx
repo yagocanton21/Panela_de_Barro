@@ -29,9 +29,11 @@ import {
   Assessment as AssessmentIcon,
   Close as CloseIcon
 } from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
 import { estoqueAPI, categoriasAPI } from '../services/api';
 
 const Dashboard = () => {
+  const navigate = useNavigate();
   // Estado das estatísticas
   const [stats, setStats] = useState({
     totalProdutos: 0,
@@ -55,7 +57,7 @@ const Dashboard = () => {
     try {
       const response = await estoqueAPI.listar({ page: 1, limit: 9999 });
       const produtos = response.data.produtos || [];
-      
+
       const produtosBaixoEstoque = produtos.filter(p => p.quantidade < 10).length;
       const quantidadeTotal = produtos.reduce((acc, p) => acc + p.quantidade, 0);
       // Buscar contagem real de categorias a partir da API de categorias
@@ -67,30 +69,30 @@ const Dashboard = () => {
         console.warn('Não foi possível buscar categorias, usando valor derivado dos produtos');
         categoriasCount = [...new Set(produtos.map(p => p.categoria))].length;
       }
-      
+
       // Produtos vencendo em 7 dias
       const hoje = new Date();
       hoje.setHours(0, 0, 0, 0);
       const seteDias = new Date(hoje);
       seteDias.setDate(hoje.getDate() + 7);
-      
+
       const listaProdutosVencendo = produtos.filter(p => {
         if (!p.dataValidade) return false;
         const dataValidade = new Date(p.dataValidade);
         dataValidade.setHours(0, 0, 0, 0);
         return dataValidade >= hoje && dataValidade <= seteDias;
       });
-      
+
       setProdutosVencendoLista(listaProdutosVencendo);
-      
+
       // Categoria mais usada
       const categoriaCount = {};
       produtos.forEach(p => {
         categoriaCount[p.categoria] = (categoriaCount[p.categoria] || 0) + 1;
       });
-      const categoriaMaisUsada = Object.keys(categoriaCount).reduce((a, b) => 
+      const categoriaMaisUsada = Object.keys(categoriaCount).reduce((a, b) =>
         categoriaCount[a] > categoriaCount[b] ? a : b, '') || 'Nenhuma';
-      
+
       setStats({
         totalProdutos: produtos.length,
         produtosBaixoEstoque,
@@ -99,7 +101,7 @@ const Dashboard = () => {
         produtosVencendo: listaProdutosVencendo.length,
         categoriaMaisUsada
       });
-      
+
 
     } catch (error) {
       console.error('Erro ao carregar dados:', error);
@@ -111,11 +113,11 @@ const Dashboard = () => {
   // Componente de card de estatística
   const StatCard = ({ title, value, icon, color, subtitle, progress, index }) => (
     <Zoom in={!loading} timeout={300} style={{ transitionDelay: `${index * 100}ms` }}>
-      <Card 
+      <Card
         elevation={0}
-        sx={{ 
-          height: '100%', 
-          border: '1px solid', 
+        sx={{
+          height: '100%',
+          border: '1px solid',
           borderColor: 'divider',
           position: 'relative',
           overflow: 'hidden',
@@ -138,9 +140,9 @@ const Dashboard = () => {
       >
         <CardContent sx={{ p: 3 }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 3 }}>
-            <Box sx={{ 
-              p: 1.5, 
-              borderRadius: 3, 
+            <Box sx={{
+              p: 1.5,
+              borderRadius: 3,
               bgcolor: `${color}15`,
               display: 'flex',
               alignItems: 'center',
@@ -154,28 +156,28 @@ const Dashboard = () => {
               {subtitle}
             </Typography>
           </Box>
-          
+
           <Typography variant="h3" sx={{ fontWeight: 700, color: color, mb: 1 }}>
             {loading ? <Skeleton width={60} /> : value}
           </Typography>
-          
+
           <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500, mb: 2 }}>
             {title}
           </Typography>
-          
+
           {progress !== undefined && (
-            <LinearProgress 
-              variant="determinate" 
-              value={progress} 
-              sx={{ 
-                height: 6, 
+            <LinearProgress
+              variant="determinate"
+              value={progress}
+              sx={{
+                height: 6,
                 borderRadius: 3,
                 bgcolor: `${color}15`,
                 '& .MuiLinearProgress-bar': {
                   bgcolor: color,
                   borderRadius: 3
                 }
-              }} 
+              }}
             />
           )}
         </CardContent>
@@ -221,7 +223,7 @@ const Dashboard = () => {
             index={0}
           />
         </Grid>
-        
+
         <Grid item xs={12} sm={6} lg={3}>
           <StatCard
             title="Estoque Baixo"
@@ -233,7 +235,7 @@ const Dashboard = () => {
             index={1}
           />
         </Grid>
-        
+
         <Grid item xs={12} sm={6} lg={3}>
           <StatCard
             title="Categorias Ativas"
@@ -245,7 +247,7 @@ const Dashboard = () => {
             index={2}
           />
         </Grid>
-        
+
         <Grid item xs={12} sm={6} lg={3}>
           <StatCard
             title="Quantidade Total"
@@ -262,10 +264,10 @@ const Dashboard = () => {
       <Grid container spacing={3} sx={{ mt: 1 }}>
         <Grid item xs={12} md={6}>
           <Zoom in={!loading} timeout={300} style={{ transitionDelay: '400ms' }}>
-            <Card 
+            <Card
               elevation={0}
-              onClick={() => stats.produtosVencendo > 0 && setDialogVencimento(true)}
-              sx={{ 
+              onClick={() => stats.produtosVencendo > 0 && navigate('/vencendo')}
+              sx={{
                 height: '100%',
                 border: '1px solid',
                 borderColor: 'divider',
@@ -292,9 +294,9 @@ const Dashboard = () => {
             >
               <CardContent sx={{ p: 4 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-                  <Box sx={{ 
-                    p: 2, 
-                    borderRadius: 3, 
+                  <Box sx={{
+                    p: 2,
+                    borderRadius: 3,
                     bgcolor: '#cd5c5c15',
                     mr: 2
                   }}>
@@ -322,9 +324,9 @@ const Dashboard = () => {
 
         <Grid item xs={12} md={6}>
           <Zoom in={!loading} timeout={300} style={{ transitionDelay: '500ms' }}>
-            <Card 
+            <Card
               elevation={0}
-              sx={{ 
+              sx={{
                 height: '100%',
                 border: '1px solid',
                 borderColor: 'divider',
@@ -350,9 +352,9 @@ const Dashboard = () => {
             >
               <CardContent sx={{ p: 4 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-                  <Box sx={{ 
-                    p: 2, 
-                    borderRadius: 3, 
+                  <Box sx={{
+                    p: 2,
+                    borderRadius: 3,
                     bgcolor: '#d2691e15',
                     mr: 2
                   }}>
