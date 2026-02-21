@@ -69,6 +69,19 @@ class Produto {
     return result.rows;
   }
 
+  // Buscar produtos vencendo nos próximos X dias
+  static async buscarVencendo(dias = 7) {
+    const result = await pool.query(`
+      SELECT p.*, c.nome as categoria 
+      FROM produtos p 
+      JOIN categorias c ON p.categoria_id = c.id 
+      WHERE p.data_validade IS NOT NULL
+      AND p.data_validade BETWEEN CURRENT_DATE AND (CURRENT_DATE + $1::INTEGER)
+      ORDER BY p.data_validade ASC
+    `, [dias]);
+    return result.rows;
+  }
+
   // Buscar produtos por nome (busca parcial, case-insensitive)
   static async buscarPorNome(nome) {
     const result = await pool.query(`

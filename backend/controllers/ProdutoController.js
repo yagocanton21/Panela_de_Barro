@@ -25,7 +25,7 @@ class ProdutoController {
       const { nome, categoriaId } = req.query;
 
       const { produtos, total } = await Produto.listarTodos(limit, offset, nome, categoriaId);
-      
+
       res.json({
         produtos: produtos.map(converterParaCamelCase),
         paginacao: {
@@ -45,11 +45,11 @@ class ProdutoController {
     try {
       const id = parseInt(req.params.id);
       const produto = await Produto.buscarPorId(id);
-      
+
       if (!produto) {
         return res.status(404).json({ erro: 'Produto não encontrado' });
       }
-      
+
       res.json(converterParaCamelCase(produto));
     } catch (error) {
       res.status(500).json({ erro: 'Erro ao buscar produto' });
@@ -61,7 +61,7 @@ class ProdutoController {
     try {
       const categoriaId = parseInt(req.params.categoriaId);
       const produtos = await Produto.buscarPorCategoria(categoriaId);
-      
+
       res.json({
         categoriaId,
         total: produtos.length,
@@ -76,7 +76,7 @@ class ProdutoController {
   static async alertaEstoqueBaixo(req, res) {
     try {
       const produtos = await Produto.buscarEstoqueBaixo();
-      
+
       res.json({
         alerta: 'Estoque baixo',
         total: produtos.length,
@@ -87,17 +87,34 @@ class ProdutoController {
     }
   }
 
+  // Buscar produtos vencendo nos próximos X dias (padrão 7)
+  static async alertaVencendo(req, res) {
+    try {
+      const dias = parseInt(req.query.dias) || 7;
+      const produtos = await Produto.buscarVencendo(dias);
+
+      res.json({
+        alerta: 'Produtos vencendo',
+        dias: dias,
+        total: produtos.length,
+        produtos: produtos.map(converterParaCamelCase)
+      });
+    } catch (error) {
+      res.status(500).json({ erro: 'Erro ao buscar produtos vencendo' });
+    }
+  }
+
   // Buscar produtos por nome
   static async buscarPorNome(req, res) {
     try {
       const { nome } = req.query;
-      
+
       if (!nome) {
         return res.status(400).json({ erro: 'Parâmetro "nome" é obrigatório' });
       }
-      
+
       const produtos = await Produto.buscarPorNome(nome);
-      
+
       res.json({
         busca: nome,
         total: produtos.length,
@@ -112,11 +129,11 @@ class ProdutoController {
   static async criar(req, res) {
     try {
       const { nome, categoriaId, quantidade, unidade, estoqueMinimo } = req.body;
-      
+
       // Validar campos obrigatórios
       if (!nome || !categoriaId || quantidade === undefined || !unidade) {
-        return res.status(400).json({ 
-          erro: 'Campos obrigatórios: nome, categoriaId, quantidade, unidade' 
+        return res.status(400).json({
+          erro: 'Campos obrigatórios: nome, categoriaId, quantidade, unidade'
         });
       }
 
@@ -134,9 +151,9 @@ class ProdutoController {
       if (estoqueMinimo !== undefined && estoqueMinimo < 0) {
         return res.status(400).json({ erro: 'Estoque mínimo não pode ser negativo' });
       }
-      
+
       const produto = await Produto.criar(req.body);
-      
+
       // Registrar no histórico
       const usuarioId = req.usuario?.id || null;
       await HistoricoController.registrar(
@@ -147,7 +164,7 @@ class ProdutoController {
         quantidade,
         `Produto "${nome}" adicionado ao estoque`
       );
-      
+
       res.status(201).json({
         mensagem: 'Produto adicionado com sucesso',
         produto: converterParaCamelCase(produto)
@@ -155,8 +172,8 @@ class ProdutoController {
     } catch (error) {
       // Verificar se é erro de duplicação
       if (error.code === '23505') {
-        return res.status(409).json({ 
-          erro: 'Produto já existe no estoque. Atualize a quantidade ao invés de criar um novo.' 
+        return res.status(409).json({
+          erro: 'Produto já existe no estoque. Atualize a quantidade ao invés de criar um novo.'
         });
       }
       // Verificar se é erro de constraint
@@ -172,11 +189,11 @@ class ProdutoController {
     try {
       const id = parseInt(req.params.id);
       const { nome, categoriaId, quantidade, unidade, estoqueMinimo } = req.body;
-      
+
       // Validar campos obrigatórios
       if (!nome || !categoriaId || quantidade === undefined || !unidade) {
-        return res.status(400).json({ 
-          erro: 'Campos obrigatórios: nome, categoriaId, quantidade, unidade' 
+        return res.status(400).json({
+          erro: 'Campos obrigatórios: nome, categoriaId, quantidade, unidade'
         });
       }
 
@@ -194,14 +211,14 @@ class ProdutoController {
       if (estoqueMinimo !== undefined && estoqueMinimo < 0) {
         return res.status(400).json({ erro: 'Estoque mínimo não pode ser negativo' });
       }
-      
+
       const produtoAnterior = await Produto.buscarPorId(id);
       const produto = await Produto.atualizar(id, req.body);
-      
+
       if (!produto) {
         return res.status(404).json({ erro: 'Produto não encontrado' });
       }
-      
+
       // Registrar no histórico
       const usuarioId = req.usuario?.id || null;
       await HistoricoController.registrar(
@@ -212,7 +229,7 @@ class ProdutoController {
         quantidade,
         `Produto "${nome}" editado`
       );
-      
+
       res.json({
         mensagem: 'Produto atualizado com sucesso',
         produto: converterParaCamelCase(produto)
@@ -230,11 +247,11 @@ class ProdutoController {
     try {
       const id = parseInt(req.params.id);
       const { operacao, quantidade } = req.body;
-      
+
       // Validar campos obrigatórios
       if (!operacao || quantidade === undefined) {
-        return res.status(400).json({ 
-          erro: 'Campos obrigatórios: operacao (entrada/saida), quantidade' 
+        return res.status(400).json({
+          erro: 'Campos obrigatórios: operacao (entrada/saida), quantidade'
         });
       }
 
@@ -242,36 +259,36 @@ class ProdutoController {
       if (quantidade <= 0) {
         return res.status(400).json({ erro: 'Quantidade deve ser maior que zero' });
       }
-      
+
       const qtd = Number(quantidade);
       const produtoAtual = await Produto.buscarPorId(id);
-      
+
       if (!produtoAtual) {
         return res.status(404).json({ erro: 'Produto não encontrado' });
       }
-      
+
       let novaQuantidade;
-      
+
       // Calcular nova quantidade baseada na operação
       if (operacao === 'entrada') {
         novaQuantidade = produtoAtual.quantidade + qtd;
       } else if (operacao === 'saida') {
         // Verificar se há quantidade suficiente
         if (produtoAtual.quantidade < qtd) {
-          return res.status(400).json({ 
+          return res.status(400).json({
             erro: 'Quantidade insuficiente em estoque',
             disponivel: produtoAtual.quantidade
           });
         }
         novaQuantidade = produtoAtual.quantidade - qtd;
       } else {
-        return res.status(400).json({ 
-          erro: 'Operação deve ser "entrada" ou "saida"' 
+        return res.status(400).json({
+          erro: 'Operação deve ser "entrada" ou "saida"'
         });
       }
-      
+
       const produto = await Produto.atualizarQuantidade(id, novaQuantidade);
-      
+
       // Registrar no histórico
       const usuarioId = req.usuario?.id || null;
       await HistoricoController.registrar(
@@ -282,7 +299,7 @@ class ProdutoController {
         novaQuantidade,
         `${operacao === 'entrada' ? 'Entrada' : 'Saída'} de ${qtd} ${produtoAtual.unidade}`
       );
-      
+
       res.json({
         mensagem: `${operacao} de ${qtd} ${produtoAtual.unidade} realizada`,
         produto: converterParaCamelCase(produto)
@@ -298,11 +315,11 @@ class ProdutoController {
       const id = parseInt(req.params.id);
       const produtoAnterior = await Produto.buscarPorId(id);
       const produto = await Produto.remover(id);
-      
+
       if (!produto) {
         return res.status(404).json({ erro: 'Produto não encontrado' });
       }
-      
+
       // Registrar no histórico
       const usuarioId = req.usuario?.id || null;
       await HistoricoController.registrar(
@@ -313,7 +330,7 @@ class ProdutoController {
         0,
         `Produto "${produtoAnterior.nome}" removido do estoque`
       );
-      
+
       res.json({
         mensagem: 'Produto removido com sucesso',
         produto: converterParaCamelCase(produto)

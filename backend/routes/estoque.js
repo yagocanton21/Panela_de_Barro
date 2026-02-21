@@ -13,6 +13,9 @@ router.get('/buscar', ProdutoController.buscarPorNome);
 // GET /estoque/alerta/baixo - Produtos com estoque baixo (rotas específicas primeiro)
 router.get('/alerta/baixo', ProdutoController.alertaEstoqueBaixo);
 
+// GET /estoque/alerta/vencendo - Produtos próximos ao vencimento
+router.get('/alerta/vencendo', ProdutoController.alertaVencendo);
+
 // GET /estoque/categoria/:categoriaId - Filtrar por categoria
 router.get('/categoria/:categoriaId', ProdutoController.filtrarPorCategoria);
 
