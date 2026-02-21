@@ -16,8 +16,6 @@ import {
   TextField,
   MenuItem,
   Grid,
-  Card,
-  CardContent,
   Skeleton
 } from '@mui/material';
 import {
@@ -30,15 +28,16 @@ import {
   Person as PersonIcon
 } from '@mui/icons-material';
 import axios from 'axios';
+import { getAuthToken } from '../services/auth';
 
-const API_URL = 'http://localhost:3001';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
 const Historico = () => {
   const [historico, setHistorico] = useState([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [filtroTipo, setFiltroTipo] = useState('todos');
+  const [filtroTipo, setFiltroTipo] = useState('entrada');
 
   useEffect(() => {
     carregarHistorico();
@@ -48,9 +47,13 @@ const Historico = () => {
     try {
       setLoading(true);
       const params = { page, limit: 20 };
-      if (filtroTipo !== 'todos') params.tipo = filtroTipo;
+      params.tipo = filtroTipo;
 
-      const response = await axios.get(`${API_URL}/historico`, { params });
+      const token = getAuthToken();
+      const response = await axios.get(`${API_URL}/historico`, {
+        params,
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined
+      });
       setHistorico(response.data.historico);
       setTotalPages(response.data.paginacao.totalPages);
     } catch (error) {
@@ -101,12 +104,8 @@ const Historico = () => {
               }}
               size="small"
             >
-              <MenuItem value="todos">Todos</MenuItem>
-              <MenuItem value="adicionar">Adicionado</MenuItem>
-              <MenuItem value="editar">Editado</MenuItem>
               <MenuItem value="entrada">Entrada</MenuItem>
               <MenuItem value="saida">Saída</MenuItem>
-              <MenuItem value="remover">Removido</MenuItem>
             </TextField>
           </Grid>
         </Grid>

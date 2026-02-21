@@ -2,31 +2,30 @@
     postgres:
       image: postgres:15-alpine
       container_name: estoque_db
-      environment:
-        POSTGRES_DB: estoque
-        POSTGRES_USER: admin
-        POSTGRES_PASSWORD: senha123
+      env_file:
+        - ../.env
       ports:
         - "5432:5432"
       volumes:
         - postgres_data:/var/lib/postgresql/data
-        - ../database/init.sql:/docker-entrypoint-initdb.d/init.sql
+        - ../database/init.sql:/docker-entrypoint-initdb.d/01_init.sql
+        - ../database/usuarios.sql:/docker-entrypoint-initdb.d/02_usuarios.sql
+        - ../database/historico.sql:/docker-entrypoint-initdb.d/03_historico.sql
 
     backend:
       build:
         context: ../backend
         dockerfile: ../docker/Dockerfile.backend
       container_name: estoque_backend
+      command: npm run dev
+      env_file:
+        - ../.env
       ports:
         - "3001:3001"
       depends_on:
         - postgres
       environment:
         - DB_HOST=postgres
-        - DB_PORT=5432
-        - DB_NAME=estoque
-        - DB_USER=admin
-        - DB_PASSWORD=senha123
       volumes:
         - ../backend:/app
         - /app/node_modules
@@ -34,12 +33,18 @@
     frontend:
       build:
         context: ../frontend
-        dockerfile: ../docker/Dockerfile.frontend
+        dockerfile: ../docker/Dockerfile.frontend.dev
       container_name: estoque_frontend
+      command: npm run dev
+      env_file:
+        - ../.env
       ports:
         - "3000:3000"
       depends_on:
         - backend
+      volumes:
+        - ../frontend:/app
+        - /app/node_modules
 
   volumes:
     postgres_data:

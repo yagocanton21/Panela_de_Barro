@@ -1,0 +1,2 @@
+-- Os produtos de exemplo ja sao inseridos por database/init.sql.
+-- Este arquivo foi mantido para compatibilidade com o README.

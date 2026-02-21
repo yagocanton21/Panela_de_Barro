@@ -27,7 +27,6 @@ import {
 import {
   Add as AddIcon,
   Inventory as InventoryIcon,
-  Category as CategoryIcon,
   Scale as ScaleIcon,
   CalendarToday as CalendarIcon,
   Business as BusinessIcon,

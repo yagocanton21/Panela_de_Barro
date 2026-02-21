@@ -18,7 +18,6 @@ import {
   VisibilityOff,
   Restaurant as RestaurantIcon
 } from '@mui/icons-material';
-import { useNavigate } from 'react-router-dom';
 import { authAPI, setAuthToken, setUsuario } from '../services/auth';
 
 const Login = () => {
@@ -26,7 +25,6 @@ const Login = () => {
   const [erro, setErro] = useState('');
   const [loading, setLoading] = useState(false);
   const [mostrarSenha, setMostrarSenha] = useState(false);
-  const navigate = useNavigate();
 
   const handleLogin = async (e) => {
     e.preventDefault();

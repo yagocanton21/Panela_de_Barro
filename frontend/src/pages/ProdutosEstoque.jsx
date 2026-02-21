@@ -23,7 +23,6 @@ import {
   Menu,
   MenuItem,
   Skeleton,
-  Zoom,
   Fade,
   Pagination,
   Select,
@@ -59,6 +58,8 @@ const ProdutosEstoque = () => {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalProdutos, setTotalProdutos] = useState(0);
+  const [movimentacaoInputs, setMovimentacaoInputs] = useState({});
+  const [movimentacaoLoadingId, setMovimentacaoLoadingId] = useState(null);
   const [itensPorPagina, setItensPorPagina] = useState(() => {
     const saved = localStorage.getItem('itensPorPagina');
     return saved ? parseInt(saved) : 9;
@@ -190,8 +191,48 @@ const ProdutosEstoque = () => {
     return date.toLocaleDateString('pt-BR');
   };
 
-  const ProductCard = ({ produto, index }) => (
-    <Zoom in={true} timeout={300} style={{ transitionDelay: `${index * 100}ms` }}>
+  const handleMovimentacaoInputChange = (produtoId, valor) => {
+    setMovimentacaoInputs((prev) => ({ ...prev, [produtoId]: valor }));
+  };
+
+  const movimentarQuantidadeRapida = async (produto, operacao) => {
+    const valor = movimentacaoInputs[produto.id];
+    const quantidade = Number.parseInt(valor, 10);
+
+    if (!Number.isInteger(quantidade) || quantidade <= 0) {
+      showSnackbar('Informe uma quantidade válida maior que zero', 'warning');
+      return;
+    }
+
+    try {
+      setMovimentacaoLoadingId(produto.id);
+      const response = await estoqueAPI.movimentarQuantidade(produto.id, { operacao, quantidade });
+      const novaQuantidade = response.data?.produto?.quantidade;
+
+      if (typeof novaQuantidade === 'number') {
+        setProdutos((prev) =>
+          prev.map((item) =>
+            item.id === produto.id ? { ...item, quantidade: novaQuantidade } : item
+          )
+        );
+        setProdutosFiltrados((prev) =>
+          prev.map((item) =>
+            item.id === produto.id ? { ...item, quantidade: novaQuantidade } : item
+          )
+        );
+      }
+
+      setMovimentacaoInputs((prev) => ({ ...prev, [produto.id]: '' }));
+      showSnackbar(response.data?.mensagem || 'Quantidade atualizada com sucesso');
+    } catch (error) {
+      const mensagemErro = error.response?.data?.erro || 'Erro ao movimentar quantidade';
+      showSnackbar(mensagemErro, 'error');
+    } finally {
+      setMovimentacaoLoadingId(null);
+    }
+  };
+
+  const ProductCard = ({ produto }) => (
       <Card 
         elevation={0}
         sx={{ 
@@ -263,6 +304,36 @@ const ProdutosEstoque = () => {
               {produto.quantidade} {produto.unidade}
             </Typography>
           </Box>
+
+          <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', mt: 1.5, mb: 1.5 }}>
+            <TextField
+              size="small"
+              type="number"
+              label="Qtd"
+              value={movimentacaoInputs[produto.id] ?? ''}
+              onChange={(e) => handleMovimentacaoInputChange(produto.id, e.target.value)}
+              inputProps={{ min: 1 }}
+              sx={{ width: 90 }}
+            />
+            <Button
+              size="small"
+              variant="outlined"
+              color="warning"
+              disabled={movimentacaoLoadingId === produto.id}
+              onClick={() => movimentarQuantidadeRapida(produto, 'saida')}
+            >
+              Saída
+            </Button>
+            <Button
+              size="small"
+              variant="outlined"
+              color="success"
+              disabled={movimentacaoLoadingId === produto.id}
+              onClick={() => movimentarQuantidadeRapida(produto, 'entrada')}
+            >
+              Entrada
+            </Button>
+          </Box>
           
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
             <Typography variant="body2" color="text.secondary" sx={{ display: 'flex', alignItems: 'center' }}>
@@ -295,7 +366,6 @@ const ProdutosEstoque = () => {
           )}
         </CardContent>
       </Card>
-    </Zoom>
   );
 
   return (
@@ -443,7 +513,7 @@ const ProdutosEstoque = () => {
               <Grid container spacing={3}>
                 {produtosFiltrados.map((produto, index) => (
                   <Grid item xs={12} sm={6} md={4} key={produto.id}>
-                    <ProductCard produto={produto} index={index} />
+                    <ProductCard produto={produto} />
                   </Grid>
                 ))}
               </Grid>

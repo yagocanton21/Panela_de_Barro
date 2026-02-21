@@ -3,7 +3,9 @@ import pool from '../database.js';
 class HistoricoController {
   async listar(req, res) {
     try {
-      const { produtoId, usuarioId, tipo, limit = 50, page = 1 } = req.query;
+      const { produtoId, usuarioId, tipo } = req.query;
+      const limit = Number.parseInt(req.query.limit, 10) || 50;
+      const page = Number.parseInt(req.query.page, 10) || 1;
       const offset = (page - 1) * limit;
 
       let query = `
@@ -18,23 +20,27 @@ class HistoricoController {
         WHERE 1=1
       `;
       const params = [];
+      const whereParams = [];
       let paramCount = 1;
 
       if (produtoId) {
         query += ` AND h.produto_id = $${paramCount}`;
         params.push(produtoId);
+        whereParams.push(produtoId);
         paramCount++;
       }
 
       if (usuarioId) {
         query += ` AND h.usuario_id = $${paramCount}`;
         params.push(usuarioId);
+        whereParams.push(usuarioId);
         paramCount++;
       }
 
       if (tipo) {
         query += ` AND h.tipo = $${paramCount}`;
         params.push(tipo);
+        whereParams.push(tipo);
         paramCount++;
       }
 
@@ -43,8 +49,19 @@ class HistoricoController {
 
       const result = await pool.query(query, params);
 
-      const countQuery = `SELECT COUNT(*) FROM historico_movimentacoes WHERE 1=1`;
-      const countResult = await pool.query(countQuery);
+      let countParamIndex = 1;
+      let countQuery = `SELECT COUNT(*) FROM historico_movimentacoes h WHERE 1=1`;
+      if (produtoId) {
+        countQuery += ` AND h.produto_id = $${countParamIndex++}`;
+      }
+      if (usuarioId) {
+        countQuery += ` AND h.usuario_id = $${countParamIndex++}`;
+      }
+      if (tipo) {
+        countQuery += ` AND h.tipo = $${countParamIndex++}`;
+      }
+
+      const countResult = await pool.query(countQuery, whereParams);
       const total = parseInt(countResult.rows[0].count);
 
       res.json({

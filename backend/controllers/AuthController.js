@@ -1,5 +1,9 @@
 // Controller de autenticação
 import pool from '../database.js';
+import jwt from 'jsonwebtoken';
+
+const JWT_SECRET = process.env.JWT_SECRET || 'troque-este-segredo-em-producao';
+const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '8h';
 
 class AuthController {
   // Login de usuário
@@ -12,7 +16,7 @@ class AuthController {
       }
 
       const result = await pool.query(
-        'SELECT id, nome, email, username, role FROM usuarios WHERE username = $1 AND senha = $2',
+        'SELECT id, nome, username, role FROM usuarios WHERE username = $1 AND senha = crypt($2, senha)',
         [username, senha]
       );
 
@@ -23,7 +27,11 @@ class AuthController {
       const usuario = result.rows[0];
       
       // Token simples (em produção, use JWT)
-      const token = Buffer.from(`${usuario.id}:${usuario.username}:${Date.now()}`).toString('base64');
+      const token = jwt.sign(
+        { sub: usuario.id, username: usuario.username, role: usuario.role },
+        JWT_SECRET,
+        { expiresIn: JWT_EXPIRES_IN }
+      );
 
       res.json({
         mensagem: 'Login realizado com sucesso',
@@ -51,7 +59,7 @@ class AuthController {
       }
 
       const result = await pool.query(
-        'INSERT INTO usuarios (nome, username, senha, role) VALUES ($1, $2, $3, $4) RETURNING id, nome, username, role',
+        'INSERT INTO usuarios (nome, username, senha, role) VALUES ($1, $2, crypt($3, gen_salt(\'bf\')), $4) RETURNING id, nome, username, role',
         [nome, username, senha, 'user']
       );
 
@@ -77,8 +85,8 @@ class AuthController {
         return res.status(401).json({ erro: 'Token não fornecido' });
       }
 
-      const decoded = Buffer.from(token, 'base64').toString('utf-8');
-      const [userId] = decoded.split(':');
+      const decoded = jwt.verify(token, JWT_SECRET);
+      const userId = decoded.sub;
 
       const result = await pool.query(
         'SELECT id, nome, username, role FROM usuarios WHERE id = $1',
