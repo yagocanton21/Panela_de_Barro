@@ -41,8 +41,7 @@ import EditarProduto from './pages/EditarProduto';
 import GerenciarCategorias from './pages/GerenciarCategorias';
 import Historico from './pages/Historico';
 import Login from './pages/Login';
-// Serviços de autenticação
-import { getAuthToken, getUsuario, logout } from './services/auth';
+import { getAuthToken, initializeAuth, logout } from './services/auth';
 import './App.css';
 
 // Configuração do tema personalizado
@@ -136,6 +135,7 @@ function App() {
   const [isAuthenticated, setIsAuthenticated] = React.useState(!!getAuthToken());
 
   React.useEffect(() => {
+    initializeAuth();
     setIsAuthenticated(!!getAuthToken());
   }, []);
 
@@ -369,3 +369,4 @@ function Navigation() {
 }
 
 export default App;
+

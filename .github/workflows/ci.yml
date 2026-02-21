@@ -60,8 +60,8 @@ jobs:
 
       # Passo 4: Roda testes do frontend
       - name: Test frontend
-        run: CI=true npm test -- --coverage --watchAll=false --passWithNoTests
+        run: npm run test -- --run --coverage
 
       # Passo 5: Build do frontend
       - name: Build frontend
-        run: CI=false npm run build
+        run: npm run build

@@ -5,19 +5,28 @@ import estoqueRoutes from "./routes/estoque.js";
 import categoriasRoutes from "./routes/categorias.js";
 import authRoutes from "./routes/auth.js";
 import historicoRoutes from "./routes/historico.js";
+import { authMiddleware } from "./middleware/auth.js";
 
 // Carregar variáveis de ambiente
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3001;
+const allowedOrigins = (process.env.ALLOWED_ORIGINS || "http://localhost:3000")
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean);
 
 // Middleware para parsing JSON
 app.use(express.json());
 
 // Middleware CORS - permitir requisições do frontend
 app.use((req, res, next) => {
-    res.header('Access-Control-Allow-Origin', '*');
+    const requestOrigin = req.headers.origin;
+    if (requestOrigin && allowedOrigins.includes(requestOrigin)) {
+        res.header("Access-Control-Allow-Origin", requestOrigin);
+    }
+    res.header("Vary", "Origin");
     res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
     res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
     if (req.method === 'OPTIONS') {
@@ -29,9 +38,9 @@ app.use((req, res, next) => {
 
 // Rotas da API
 app.use('/auth', authRoutes);
-app.use('/estoque', estoqueRoutes);
-app.use('/categorias', categoriasRoutes);
-app.use('/historico', historicoRoutes);
+app.use('/estoque', authMiddleware, estoqueRoutes);
+app.use('/categorias', authMiddleware, categoriasRoutes);
+app.use('/historico', authMiddleware, historicoRoutes);
 
 // Rota raiz com informações da API
 app.get('/', (req, res) => {

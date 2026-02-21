@@ -1,4 +1,6 @@
--- Tabela de usuários para autenticação
+-- Tabela de usuarios para autenticacao
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
 CREATE TABLE IF NOT EXISTS usuarios (
   id SERIAL PRIMARY KEY,
   nome VARCHAR(255) NOT NULL,
@@ -8,12 +10,12 @@ CREATE TABLE IF NOT EXISTS usuarios (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Usuário admin padrão (username: admin, senha: admin123)
-INSERT INTO usuarios (nome, username, senha, role) 
-VALUES ('Administrador', 'admin', 'admin123', 'admin')
+-- Usuario admin padrao (username: admin, senha: admin123)
+INSERT INTO usuarios (nome, username, senha, role)
+VALUES ('Administrador', 'admin', crypt('admin123', gen_salt('bf')), 'admin')
 ON CONFLICT (username) DO NOTHING;
 
--- Usuário teste (username: user, senha: user123)
-INSERT INTO usuarios (nome, username, senha, role) 
-VALUES ('Usuário Teste', 'user', 'user123', 'user')
+-- Usuario teste (username: user, senha: user123)
+INSERT INTO usuarios (nome, username, senha, role)
+VALUES ('Usuario Teste', 'user', crypt('user123', gen_salt('bf')), 'user')
 ON CONFLICT (username) DO NOTHING;

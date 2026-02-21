@@ -1,5 +1,8 @@
 // Middleware de autenticação
 import pool from '../database.js';
+import jwt from 'jsonwebtoken';
+
+const JWT_SECRET = process.env.JWT_SECRET || 'troque-este-segredo-em-producao';
 
 // Verifica token e autentica usuário
 export const authMiddleware = async (req, res, next) => {
@@ -10,11 +13,11 @@ export const authMiddleware = async (req, res, next) => {
       return res.status(401).json({ erro: 'Acesso negado. Token não fornecido.' });
     }
 
-    const decoded = Buffer.from(token, 'base64').toString('utf-8');
-    const [userId] = decoded.split(':');
+    const decoded = jwt.verify(token, JWT_SECRET);
+    const userId = decoded.sub;
 
     const result = await pool.query(
-      'SELECT id, nome, email, role FROM usuarios WHERE id = $1',
+      'SELECT id, nome, username, role FROM usuarios WHERE id = $1',
       [userId]
     );
 
