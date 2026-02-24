@@ -42,6 +42,7 @@ import GerenciarCategorias from './pages/GerenciarCategorias';
 import Historico from './pages/Historico';
 import Login from './pages/Login';
 import ProdutosVencendo from './pages/ProdutosVencendo';
+import ProdutosBaixoEstoque from './pages/ProdutosBaixoEstoque';
 import { getAuthToken, initializeAuth, logout } from './services/auth';
 import './App.css';
 
@@ -182,6 +183,7 @@ function App() {
               <Route path="/categorias" element={<GerenciarCategorias />} />
               <Route path="/historico" element={<Historico />} />
               <Route path="/vencendo" element={<ProdutosVencendo />} />
+              <Route path="/estoque-baixo" element={<ProdutosBaixoEstoque />} />
             </Routes>
           </Box>
 

@@ -80,7 +80,7 @@ const Dashboard = () => {
         if (!p.dataValidade) return false;
         const dataValidade = new Date(p.dataValidade);
         dataValidade.setHours(0, 0, 0, 0);
-        return dataValidade >= hoje && dataValidade <= seteDias;
+        return dataValidade <= seteDias;
       });
 
       setProdutosVencendoLista(listaProdutosVencendo);
@@ -111,10 +111,11 @@ const Dashboard = () => {
   };
 
   // Componente de card de estatística
-  const StatCard = ({ title, value, icon, color, subtitle, progress, index }) => (
+  const StatCard = ({ title, value, icon, color, subtitle, progress, index, onClick }) => (
     <Zoom in={!loading} timeout={300} style={{ transitionDelay: `${index * 100}ms` }}>
       <Card
         elevation={0}
+        onClick={onClick}
         sx={{
           height: '100%',
           border: '1px solid',
@@ -122,10 +123,11 @@ const Dashboard = () => {
           position: 'relative',
           overflow: 'hidden',
           transition: 'all 0.3s ease',
+          cursor: onClick ? 'pointer' : 'default',
           '&:hover': {
-            transform: 'translateY(-8px)',
-            boxShadow: `0 12px 24px ${color}20`,
-            borderColor: color,
+            transform: onClick ? 'translateY(-8px)' : 'none',
+            boxShadow: onClick ? `0 12px 24px ${color}20` : 'none',
+            borderColor: onClick ? color : 'divider',
           },
           '&::before': {
             content: '""',
@@ -233,6 +235,7 @@ const Dashboard = () => {
             subtitle="ATENÇÃO"
             progress={calcularProgresso(stats.produtosBaixoEstoque, stats.totalProdutos)}
             index={1}
+            onClick={() => stats.produtosBaixoEstoque > 0 && navigate('/estoque-baixo')}
           />
         </Grid>
 
@@ -300,7 +303,12 @@ const Dashboard = () => {
                     bgcolor: '#cd5c5c15',
                     mr: 2
                   }}>
-                    <CalendarIcon sx={{ fontSize: 32, color: '#cd5c5c' }} />
+                    <CalendarIcon sx={{
+                      fontSize: 32,
+                      color: stats.produtosVencendo > 0 && produtosVencendoLista.some(p => new Date(p.dataValidade) < new Date().setHours(0, 0, 0, 0))
+                        ? '#ff0000'
+                        : '#cd5c5c'
+                    }} />
                   </Box>
                   <Box>
                     <Typography variant="h3" sx={{ fontWeight: 700, color: '#cd5c5c' }}>
@@ -315,7 +323,11 @@ const Dashboard = () => {
                   Produtos Vencendo
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  {stats.produtosVencendo > 0 ? 'Clique para ver detalhes' : 'Nenhum produto vencendo'}
+                  {stats.produtosVencendo > 0
+                    ? (produtosVencendoLista.some(p => new Date(p.dataValidade) < new Date().setHours(0, 0, 0, 0))
+                      ? 'Produtos VENCIDOS detectados! Ver detalhes'
+                      : 'Clique para ver detalhes')
+                    : 'Nenhum produto vencendo'}
                 </Typography>
               </CardContent>
             </Card>

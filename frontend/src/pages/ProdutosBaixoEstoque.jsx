@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
     Container,
     Typography,
@@ -10,8 +10,6 @@ import {
     TableContainer,
     TableHead,
     TableRow,
-    Paper,
-    Chip,
     Box,
     Button,
     CircularProgress,
@@ -21,17 +19,18 @@ import {
     MenuItem,
     Select,
     FormControl,
-    InputLabel
+    InputLabel,
+    Chip
 } from '@mui/material';
 import {
     ArrowBack as ArrowBackIcon,
-    CalendarToday as CalendarIcon,
+    Warning as WarningIcon,
     Search as SearchIcon
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { estoqueAPI, categoriasAPI } from '../services/api';
 
-const ProdutosVencendo = () => {
+const ProdutosBaixoEstoque = () => {
     const navigate = useNavigate();
     const [produtos, setProdutos] = useState([]);
     const [categorias, setCategorias] = useState([]);
@@ -40,41 +39,43 @@ const ProdutosVencendo = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    useEffect(() => {
-        carregarDados();
-    }, []);
-
     const carregarDados = async () => {
         try {
             setLoading(true);
             setError(null);
 
             const [respProdutos, respCategorias] = await Promise.all([
-                estoqueAPI.buscarVencendo(7),
+                estoqueAPI.buscarBaixoEstoque(),
                 categoriasAPI.listar()
             ]);
 
-            setProdutos(respProdutos.data.produtos || []);
-            setCategorias(respCategorias.data.categorias || []);
+            const listaProdutos = respProdutos?.data?.produtos || [];
+            const listaCategorias = respCategorias?.data?.categorias || [];
+
+            setProdutos(Array.isArray(listaProdutos) ? listaProdutos : []);
+            setCategorias(Array.isArray(listaCategorias) ? listaCategorias : []);
         } catch (err) {
             console.error('Erro ao carregar dados:', err);
-            setError('Não foi possível carregar as informações de validade.');
+            setError('Não foi possível carregar as informações de estoque baixo.');
         } finally {
             setLoading(false);
         }
     };
 
-    const formatarData = (dataStr) => {
-        if (!dataStr) return 'N/A';
-        const date = new Date(dataStr);
-        return date.toLocaleDateString('pt-BR');
-    };
+    useEffect(() => {
+        carregarDados();
+    }, []);
 
-    const produtosFiltrados = produtos.filter(p => {
-        const matchesNome = p.nome.toLowerCase().includes(filtroNome.toLowerCase());
-        const matchesCategoria = filtroCategoria === 'todos' || p.categoria === filtroCategoria;
-        return matchesNome && matchesCategoria;
-    });
+    const produtosFiltrados = useMemo(() => {
+        if (!Array.isArray(produtos)) return [];
+        return produtos.filter(p => {
+            if (!p) return false;
+            const nome = p.nome || '';
+            const matchesNome = nome.toLowerCase().includes(filtroNome.toLowerCase());
+            const matchesCategoria = filtroCategoria === 'todos' || p.categoria === filtroCategoria;
+            return matchesNome && matchesCategoria;
+        });
+    }, [produtos, filtroNome, filtroCategoria]);
 
     return (
         <Container maxWidth="lg" sx={{ py: 4 }}>
@@ -89,8 +90,8 @@ const ProdutosVencendo = () => {
                         Voltar
                     </Button>
                     <Typography variant="h4" sx={{ fontWeight: 700, color: 'primary.main', display: 'flex', alignItems: 'center' }}>
-                        <CalendarIcon sx={{ mr: 2, fontSize: 32, color: '#cd5c5c' }} />
-                        Validade
+                        <WarningIcon sx={{ mr: 2, fontSize: 32, color: '#daa520' }} />
+                        Estoque Baixo
                     </Typography>
                 </Box>
 
@@ -136,7 +137,7 @@ const ProdutosVencendo = () => {
                 </Alert>
             )}
 
-            <Card elevation={0} sx={{ borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
+            <Card elevation={0} sx={{ borderRadius: 3, border: '1px solid', borderColor: 'divider', overflow: 'hidden' }}>
                 <CardContent sx={{ p: 0 }}>
                     {loading ? (
                         <Box sx={{ display: 'flex', justifyContent: 'center', p: 5 }}>
@@ -145,56 +146,47 @@ const ProdutosVencendo = () => {
                     ) : produtosFiltrados.length === 0 ? (
                         <Box sx={{ p: 5, textAlign: 'center' }}>
                             <Typography variant="h6" color="text.secondary">
-                                {filtroNome ? `Nenhum produto encontrado para "${filtroNome}"` : 'Nenhum produto vence nos próximos 7 dias. Excelente!'}
+                                {filtroNome ? `Nenhum produto encontrado para "${filtroNome}"` : 'Nenhum produto com estoque baixo. Tudo em dia!'}
                             </Typography>
                         </Box>
                     ) : (
-                        <TableContainer component={Box}>
+                        <TableContainer>
                             <Table>
                                 <TableHead sx={{ bgcolor: 'rgba(0,0,0,0.02)' }}>
                                     <TableRow>
                                         <TableCell sx={{ fontWeight: 600 }}>Produto</TableCell>
                                         <TableCell sx={{ fontWeight: 600 }}>Categoria</TableCell>
-                                        <TableCell sx={{ fontWeight: 600 }} align="right">Quantidade</TableCell>
-                                        <TableCell sx={{ fontWeight: 600 }}>Validade</TableCell>
-                                        <TableCell sx={{ fontWeight: 600 }}>Fornecedor</TableCell>
+                                        <TableCell sx={{ fontWeight: 600 }} align="right">Qtd. Atual</TableCell>
+                                        <TableCell sx={{ fontWeight: 600 }} align="right">Mínimo</TableCell>
+                                        <TableCell sx={{ fontWeight: 600 }}>Status</TableCell>
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
                                     {produtosFiltrados.map((produto) => (
-                                        <TableRow key={produto.id} hover>
-                                            <TableCell sx={{ fontWeight: 500 }}>
-                                                {produto.nome}
-                                                {new Date(produto.dataValidade) < new Date().setHours(0, 0, 0, 0) && (
-                                                    <Chip
-                                                        label="VENCIDO"
-                                                        size="small"
-                                                        color="error"
-                                                        sx={{ ml: 1, fontWeight: 'bold', height: 20 }}
-                                                    />
-                                                )}
+                                        <TableRow key={produto.id || Math.random()} hover>
+                                            <TableCell sx={{ fontWeight: 500 }}>{produto.nome}</TableCell>
+                                            <TableCell>
+                                                <Chip
+                                                    label={produto.categoria || 'Sem categoria'}
+                                                    size="small"
+                                                    sx={{ bgcolor: 'rgba(218, 165, 32, 0.1)', color: '#daa520', fontWeight: 500 }}
+                                                />
+                                            </TableCell>
+                                            <TableCell align="right" sx={{ fontWeight: 700, color: 'error.main' }}>
+                                                {produto.quantidade} {produto.unidade}
+                                            </TableCell>
+                                            <TableCell align="right">
+                                                {produto.estoqueMinimo || 10} {produto.unidade}
                                             </TableCell>
                                             <TableCell>
                                                 <Chip
-                                                    label={produto.categoria}
+                                                    label="Repor Estoque"
                                                     size="small"
-                                                    sx={{
-                                                        bgcolor: new Date(produto.dataValidade) < new Date().setHours(0, 0, 0, 0) ? '#ff000015' : '#cd5c5c15',
-                                                        color: new Date(produto.dataValidade) < new Date().setHours(0, 0, 0, 0) ? '#ff0000' : '#cd5c5c',
-                                                        fontWeight: 500
-                                                    }}
+                                                    color="warning"
+                                                    variant="outlined"
+                                                    sx={{ fontWeight: 'bold' }}
                                                 />
                                             </TableCell>
-                                            <TableCell align="right">
-                                                {produto.quantidade} {produto.unidade}
-                                            </TableCell>
-                                            <TableCell sx={{
-                                                color: new Date(produto.dataValidade) < new Date().setHours(0, 0, 0, 0) ? '#ff0000' : '#cd5c5c',
-                                                fontWeight: 700
-                                            }}>
-                                                {formatarData(produto.dataValidade)}
-                                            </TableCell>
-                                            <TableCell>{produto.fornecedor || '-'}</TableCell>
                                         </TableRow>
                                     ))}
                                 </TableBody>
@@ -207,4 +199,4 @@ const ProdutosVencendo = () => {
     );
 };
 
-export default ProdutosVencendo;
+export default ProdutosBaixoEstoque;

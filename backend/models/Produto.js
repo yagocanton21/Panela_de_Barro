@@ -8,31 +8,31 @@ class Produto {
     let countQuery = 'SELECT COUNT(*) FROM produtos p';
     const params = [];
     const conditions = [];
-    
+
     if (nome) {
       conditions.push(`p.nome ILIKE $${params.length + 1}`);
       params.push(`%${nome}%`);
     }
-    
+
     if (categoriaId) {
       conditions.push(`p.categoria_id = $${params.length + 1}`);
       params.push(categoriaId);
     }
-    
+
     if (conditions.length > 0) {
       const whereClause = ' WHERE ' + conditions.join(' AND ');
       query += whereClause;
       countQuery += whereClause;
     }
-    
+
     const countResult = await pool.query(countQuery, params);
     const total = parseInt(countResult.rows[0].count);
 
     query += ` ORDER BY p.id LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
     params.push(limit, offset);
-    
+
     const result = await pool.query(query, params);
-    
+
     return { produtos: result.rows, total };
   }
 
@@ -76,7 +76,7 @@ class Produto {
       FROM produtos p 
       JOIN categorias c ON p.categoria_id = c.id 
       WHERE p.data_validade IS NOT NULL
-      AND p.data_validade BETWEEN CURRENT_DATE AND (CURRENT_DATE + $1::INTEGER)
+      AND p.data_validade <= (CURRENT_DATE + $1::INTEGER)
       ORDER BY p.data_validade ASC
     `, [dias]);
     return result.rows;
