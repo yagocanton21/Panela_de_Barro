@@ -20,6 +20,7 @@ export const estoqueAPI = {
   listar: (params = {}) => axios.get(`${API_BASE_URL}/estoque`, withAuth({ params })),
   buscarPorId: (id) => axios.get(`${API_BASE_URL}/estoque/${id}`, withAuth()),
   buscarVencendo: (dias = 7) => axios.get(`${API_BASE_URL}/estoque/alerta/vencendo`, withAuth({ params: { dias } })),
+  buscarBaixoEstoque: () => axios.get(`${API_BASE_URL}/estoque/alerta/baixo`, withAuth()),
   adicionar: (produto) => axios.post(`${API_BASE_URL}/estoque`, produto, withAuth()),
   atualizar: (id, produto) => axios.put(`${API_BASE_URL}/estoque/${id}`, produto, withAuth()),
   movimentarQuantidade: (id, dados) => axios.patch(`${API_BASE_URL}/estoque/${id}/quantidade`, dados, withAuth()),
